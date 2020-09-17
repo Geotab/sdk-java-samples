@@ -1,0 +1,98 @@
+package com.geotab.sdk.datafeed.cache;
+
+import com.geotab.api.GeotabApi;
+import com.geotab.http.request.AuthenticatedRequest;
+import com.geotab.http.request.param.SearchParameters;
+import com.geotab.http.response.DiagnosticListResponse;
+import com.geotab.model.entity.diagnostic.BasicDiagnostic;
+import com.geotab.model.entity.diagnostic.Diagnostic;
+import com.geotab.model.entity.diagnostic.NoDiagnostic;
+import com.geotab.model.search.IdSearch;
+import java.util.List;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+
+/**
+ * {@link Diagnostic} cache singleton. Reloads controllers periodically on demand and caches them.
+ */
+@Slf4j
+public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
+
+  private ControllerCache controllerCache;
+  private UnitOfMeasureCache unitOfMeasureCache;
+
+  public DiagnosticCache(
+      GeotabApi api,
+      ControllerCache controllerCache,
+      UnitOfMeasureCache unitOfMeasureCache
+  ) {
+    super(api, NoDiagnostic.getInstance());
+    this.controllerCache = controllerCache;
+    this.unitOfMeasureCache = unitOfMeasureCache;
+  }
+
+  @Override
+  protected Logger getLog() {
+    return log;
+  }
+
+  @Override
+  protected Optional<Diagnostic> fetchEntity(String id) throws Exception {
+    log.debug("Loading Diagnostic by id {} from Geotab ...", id);
+
+    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
+        .method("Get")
+        .params(SearchParameters.searchParamsBuilder()
+            .search(new IdSearch(id))
+            .typeName("Diagnostic")
+            .build())
+        .build();
+
+    Optional<List<Diagnostic>> diagnostics = api.call(request, DiagnosticListResponse.class);
+
+    if (diagnostics.isPresent() && !diagnostics.get().isEmpty()) {
+      log.debug("Diagnostic by id {} loaded from Geotab.", id);
+      return Optional.of(diagnostics.get().get(0));
+    }
+
+    return Optional.empty();
+  }
+
+  @Override
+  protected Optional<List<Diagnostic>> fetchAll() throws Exception {
+    log.debug("Loading all Diagnostic from Geotab ...");
+    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
+        .method("Get")
+        .params(SearchParameters.searchParamsBuilder()
+            .typeName("Diagnostic")
+            .build())
+        .build();
+
+    return api.call(request, DiagnosticListResponse.class);
+  }
+
+  @Override
+  protected Diagnostic createFakeCacheable(String id) {
+    log.debug(
+        "No Diagnostic with id {} found in Geotab; creating a fake Diagnostic to cache it.",
+        id);
+    return BasicDiagnostic.basicDiagnosticBuilder().id(id).build();
+  }
+
+  @Override
+  public Diagnostic get(String id) {
+    Diagnostic diagnostic = super.get(id);
+
+    if (diagnostic.getController() != null) {
+      diagnostic.setController(controllerCache.get(diagnostic.getController().getId().getId()));
+    }
+
+    if (diagnostic.getUnitOfMeasure() != null) {
+      diagnostic
+          .setUnitOfMeasure(unitOfMeasureCache.get(diagnostic.getUnitOfMeasure().getId().getId()));
+    }
+
+    return diagnostic;
+  }
+}
