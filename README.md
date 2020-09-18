@@ -4,11 +4,11 @@ The following examples show common usages of the SDK using Java. We recommend th
 
 ## Geotab Java SDK jar installation
 
-In case you are provided with a pre-release Geotab Java SDK jar, you will need to install it to your local maven repository. The jar received is built with maven, so it will contain inside it the pom.xml with dependencies.
+In case you are provided with a pre-release Geotab Java SDK jar, you will need to install it to your local maven repository. The jar received is built with maven, so it will contain inside it the pom.xml with dependencies. Along with binary jar, you'll most probably have the sources and the javadoc jars.
 
-Run this command from the same path where you have the Geotab Java SDK jar (this example assumes version 1.0-SNAPSHOT )
+Run this command from the same path where you have the Geotab Java SDK jars (this example assumes version 1.0-SNAPSHOT )
 ```shell
-> mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file -Dfile=java-sdk-1.0-SNAPSHOT.jar
+> mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file -Dfile=java-sdk-1.0-SNAPSHOT-sources.jar -Djavadoc=java-sdk-1.0-SNAPSHOT-javadoc.jar -Dsources=java-sdk-1.0-SNAPSHOT-sources.jar
 ```
 
 The output of the above command should look like this, informing about jar and pom installation
@@ -16,6 +16,8 @@ The output of the above command should look like this, informing about jar and p
 >  [INFO] --- maven-install-plugin:3.0.0-M1:install-file (default-cli) @ standalone-pom ---
 >  [INFO] Installing ...\java-sdk-1.0-SNAPSHOT.jar to ...\.m2\repository\com\geotab\java-sdk\1.0-SNAPSHOT\java-sdk-1.0-SNAPSHOT.jar
 >  [INFO] Installing ...\AppData\Local\Temp\java-sdk-1.0-SNAPSHOT687252861701726785.pom to ...\.m2\repository\com\geotab\java-sdk\1.0-SNAPSHOT\java-sdk-1.0-SNAPSHOT.pom
+>  [INFO] Installing ...\java-sdk-1.0-SNAPSHOT-sources.jar to ...\.m2\repository\com\geotab\java-sdk\1.0-SNAPSHOT\java-sdk-1.0-SNAPSHOT-sources.jar
+>  [INFO] Installing ...\java-sdk-1.0-SNAPSHOT-javadoc.jar to ...\.m2\repository\com\geotab\java-sdk\1.0-SNAPSHOT\java-sdk-1.0-SNAPSHOT-javadoc.jar
 >  [INFO] ------------------------------------------------------------------------
 >  [INFO] BUILD SUCCESS
 >  [INFO] ------------------------------------------------------------------------
