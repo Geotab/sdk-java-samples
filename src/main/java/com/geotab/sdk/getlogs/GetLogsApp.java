@@ -1,7 +1,7 @@
 package com.geotab.sdk.getlogs;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
-import static com.geotab.model.serialization.DateTimeSerializationUtil.nowUtcLocalDateTime;
+import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
@@ -44,7 +44,7 @@ public class GetLogsApp {
         System.out.println("Command line parameters:");
         System.out.println(
             "java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.getlogs.GetLogsApp"
-            + " 'server' 'database' 'username' 'password' 'serialNumber'");
+                + " 'server' 'database' 'username' 'password' 'serialNumber'");
         System.out.println("server             - The server name (Example: my.geotab.com)");
         System.out.println("database           - The database name (Example: G560)");
         System.out.println("username           - The Geotab user name");

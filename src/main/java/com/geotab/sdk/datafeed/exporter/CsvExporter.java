@@ -1,7 +1,7 @@
 package com.geotab.sdk.datafeed.exporter;
 
-import static com.geotab.model.serialization.DateTimeSerializationUtil.localDateTimeToString;
-import static com.geotab.model.serialization.DateTimeSerializationUtil.nowUtcLocalDateTime;
+import static com.geotab.util.DateTimeUtil.localDateTimeToString;
+import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 
 import com.geotab.model.entity.NameEntity;
 import com.geotab.model.entity.device.GoDevice;

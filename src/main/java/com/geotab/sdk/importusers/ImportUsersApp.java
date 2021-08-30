@@ -1,6 +1,7 @@
 package com.geotab.sdk.importusers;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.model.entity.user.UserAuthenticationType.BASIC_AUTHENTICATION;
 
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
@@ -15,7 +16,6 @@ import com.geotab.model.Id;
 import com.geotab.model.entity.group.Group;
 import com.geotab.model.entity.group.SecurityGroup;
 import com.geotab.model.entity.user.User;
-import com.geotab.model.enumeration.UserAuthenticationType;
 import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.GroupSearch;
@@ -116,7 +116,7 @@ public class ImportUsersApp {
                 .firstName(firstName)
                 .lastName(lastName)
                 .password(password)
-                .userAuthenticationType(UserAuthenticationType.BASIC_AUTHENTICATION)
+                .userAuthenticationType(BASIC_AUTHENTICATION)
                 .activeFrom(minDate)
                 .activeTo(maxDate)
                 .privateUserGroups(new ArrayList<>())
@@ -351,3 +351,4 @@ public class ImportUsersApp {
   }
 
 }
+

@@ -18,7 +18,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven-checkstyle-plugin.version>3.1.1</maven-checkstyle-plugin.version>
     <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
-    <geotab.sdk.version>1.0-SNAPSHOT</geotab.sdk.version>
+    <geotab.sdk.version>5.7.2103.2</geotab.sdk.version>
     <slf4j.version>1.7.30</slf4j.version>
     <log4j.version>2.13.3</log4j.version>
     <log4j.jcl.version>2.13.3</log4j.jcl.version>
@@ -81,9 +81,9 @@
     </dependency>
 
     <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-1.2-api</artifactId>
-        <version>${log4j.version}</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-1.2-api</artifactId>
+      <version>${log4j.version}</version>
     </dependency>
 
     <dependency>
