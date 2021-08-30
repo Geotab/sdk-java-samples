@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.exporter;
 
-import static com.geotab.model.serialization.DateTimeSerializationUtil.localDateTimeToString;
+import static com.geotab.util.DateTimeUtil.localDateTimeToString;
 
 import com.geotab.model.entity.NameEntity;
 import com.geotab.model.entity.device.Device;
@@ -12,7 +12,6 @@ import com.geotab.model.entity.faultdata.FaultData;
 import com.geotab.model.entity.logrecord.LogRecord;
 import com.geotab.model.entity.statusdata.StatusData;
 import com.geotab.model.entity.trip.Trip;
-import com.geotab.model.serialization.DateTimeSerializationUtil;
 import com.geotab.sdk.datafeed.loader.DataFeedResult;
 import com.geotab.util.CollectionUtil;
 import java.math.BigDecimal;
@@ -57,8 +56,7 @@ public class ConsoleExporter implements Exporter {
     for (LogRecord logRecord : logRecords) {
       StringBuilder stringBuilder = new StringBuilder("\n");
       appendDeviceValues(stringBuilder, logRecord.getDevice());
-      appendValue(stringBuilder,
-          DateTimeSerializationUtil.localDateTimeToString(logRecord.getDateTime()));
+      appendValue(stringBuilder, localDateTimeToString(logRecord.getDateTime()));
       appendValue(stringBuilder, round(logRecord.getLongitude(), 3));
       appendValue(stringBuilder, round(logRecord.getLatitude(), 3));
       appendValue(stringBuilder, logRecord.getSpeed(), false);
@@ -80,8 +78,7 @@ public class ConsoleExporter implements Exporter {
     for (StatusData data : statusData) {
       StringBuilder stringBuilder = new StringBuilder("\n");
       appendDeviceValues(stringBuilder, data.getDevice());
-      appendValue(stringBuilder,
-          DateTimeSerializationUtil.localDateTimeToString(data.getDateTime()));
+      appendValue(stringBuilder, localDateTimeToString(data.getDateTime()));
 
       appendName(stringBuilder, data.getDiagnostic());
       appendName(stringBuilder, data.getDiagnostic().getSource());
@@ -108,8 +105,7 @@ public class ConsoleExporter implements Exporter {
     for (FaultData data : faultData) {
       StringBuilder stringBuilder = new StringBuilder("\n");
       appendDeviceValues(stringBuilder, data.getDevice());
-      appendValue(stringBuilder,
-          DateTimeSerializationUtil.localDateTimeToString(data.getDateTime()));
+      appendValue(stringBuilder, localDateTimeToString(data.getDateTime()));
 
       appendName(stringBuilder, data.getDiagnostic());
 

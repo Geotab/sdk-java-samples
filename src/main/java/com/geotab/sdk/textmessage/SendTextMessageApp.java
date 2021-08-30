@@ -1,6 +1,7 @@
 package com.geotab.sdk.textmessage;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
@@ -24,7 +25,6 @@ import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.TextMessageSearch;
 import com.geotab.model.search.UserSearch;
-import com.geotab.model.serialization.DateTimeSerializationUtil;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -205,7 +205,7 @@ public class SendTextMessageApp {
         false);
 
     // Construct the text message
-    LocalDateTime nowUtc = DateTimeSerializationUtil.nowUtcLocalDateTime();
+    LocalDateTime nowUtc = nowUtcLocalDateTime();
     TextMessage basicTextMessage = TextMessage.builder()
         .sent(nowUtc)
         .delivered(nowUtc)
@@ -344,7 +344,7 @@ public class SendTextMessageApp {
 
   private static void sendMessageWithGpsLocation(GeotabApi api, User sender,
       Device messageRecipient) {
-    LocalDateTime lastKnownSentDate = DateTimeSerializationUtil.nowUtcLocalDateTime();
+    LocalDateTime lastKnownSentDate = nowUtcLocalDateTime();
 
     /*
      * Location Message
