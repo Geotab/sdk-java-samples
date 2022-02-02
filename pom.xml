@@ -75,17 +75,8 @@
             <phase>validate</phase>
             <configuration>
               <configLocation>quality-enforcement/checkstyle/google_checks.xml</configLocation>
-              <encoding>UTF-8</encoding>
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
-              <failOnViolation>true</failOnViolation>
-              <!-- Exclude generated sources -->
-              <sourceDirectories>
-                <directory>${project.basedir}/src/main/java</directory>
-              </sourceDirectories>
-              <testSourceDirectories>
-                <directory>${project.basedir}/src/test/java</directory>
-              </testSourceDirectories>
             </configuration>
             <goals>
               <goal>check</goal>

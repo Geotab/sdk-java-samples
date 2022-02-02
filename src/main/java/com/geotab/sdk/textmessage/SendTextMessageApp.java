@@ -35,61 +35,52 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SendTextMessageApp {
 
-  public static void main(String[] args) throws Exception {
-    try {
-      if (args.length != 4) {
-        System.out.println("Command line parameters:");
-        System.out
-            .println("java -cp sdk-java-samples.jar com.geotab.sdk.textmessage.SendTextMessageApp "
-                + "<server> <database> <username> <password>");
-        System.out.println("server             - The server name (Example: my.geotab.com)");
-        System.out.println("database           - The database name (Example: G560)");
-        System.out.println("username           - The Geotab user name");
-        System.out.println("password           - The Geotab password");
-        System.exit(1);
-      }
+  public static void main(String[] args) {
+    if (args.length != 4) {
+      System.out.println("Command line parameters:");
+      System.out
+          .println("java -cp sdk-java-samples.jar com.geotab.sdk.textmessage.SendTextMessageApp "
+              + "<server> <database> <username> <password>");
+      System.out.println("server             - The server name (Example: my.geotab.com)");
+      System.out.println("database           - The database name (Example: G560)");
+      System.out.println("username           - The Geotab user name");
+      System.out.println("password           - The Geotab password");
+      System.exit(1);
+    }
 
-      // Process command line arguments
-      String server = args[0];
-      String database = args[1];
-      String username = args[2];
-      String password = args[3];
+    // Process command line arguments
+    String server = args[0];
+    String database = args[1];
+    String username = args[2];
+    String password = args[3];
 
-      Credentials credentials = Credentials.builder()
-          .database(database)
-          .password(password)
-          .userName(username)
-          .build();
+    Credentials credentials = Credentials.builder()
+        .database(database)
+        .password(password)
+        .userName(username)
+        .build();
 
-      // Create the Geotab API object used to make calls to the server
-      // Note: server name should be the generic server as DBs can be moved without notice.
-      // For example; use "my.geotab.com" rather than "my3.geotab.com".
-      try (GeotabApi api = new GeotabApi(credentials, server, DEFAULT_TIMEOUT)) {
+    // Create the Geotab API object used to make calls to the server
+    // Note: server name should be the generic server as DBs can be moved without notice.
+    // For example; use "my.geotab.com" rather than "my3.geotab.com".
+    try (GeotabApi api = new GeotabApi(credentials, server, DEFAULT_TIMEOUT)) {
 
-        // Authenticate user
-        authenticate(api);
+      // Authenticate user
+      authenticate(api);
 
-        // Get a device to send text messages to
-        Device messageRecipient = getTargetDevice(api);
-        log.info("Messages will be send to " + messageRecipient.getName());
+      // Get a device to send text messages to
+      Device messageRecipient = getTargetDevice(api);
+      log.info("Messages will be send to " + messageRecipient.getName());
 
-        // Get the User who the messages will be sent from
-        User sender = getUser(api, username);
-        log.info("Messages will be sent from {} ", sender.getName());
+      // Get the User who the messages will be sent from
+      User sender = getUser(api, username);
+      log.info("Messages will be sent from {} ", sender.getName());
 
-        // Sample TextMessage and reply
-        sendBasicMessageAndMockDeviceReply(api, sender, messageRecipient);
+      // Sample TextMessage and reply
+      sendBasicMessageAndMockDeviceReply(api, sender, messageRecipient);
 
-        // Sample of sending a text message with a GPS location
-        sendMessageWithGpsLocation(api, sender, messageRecipient);
-      }
-
-    } catch (Exception exception) {
-      // Show miscellaneous exceptions
-      log.error("Unhandled exception: ", exception);
-    } finally {
-      log.info("Press Enter to exit...");
-      System.in.read();
+      // Sample of sending a text message with a GPS location
+      sendMessageWithGpsLocation(api, sender, messageRecipient);
     }
   }
 

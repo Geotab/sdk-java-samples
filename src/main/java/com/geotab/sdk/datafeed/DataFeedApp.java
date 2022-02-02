@@ -3,7 +3,6 @@ package com.geotab.sdk.datafeed;
 import com.geotab.sdk.datafeed.cli.CommandLineArguments;
 import com.geotab.sdk.datafeed.worker.DataFeedWorker;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.MissingArgumentException;
 
 /**
  * This is a console example of obtaining the data feed from the server.
@@ -19,37 +18,25 @@ import org.apache.commons.cli.MissingArgumentException;
 public class DataFeedApp {
 
   public static void main(String[] args) throws Exception {
+    CommandLineArguments commandLineArguments = new CommandLineArguments(args);
 
-    try {
-      CommandLineArguments commandLineArguments = new CommandLineArguments(args);
+    DataFeedWorker dataFeedWorker = new DataFeedWorker(commandLineArguments);
 
-      DataFeedWorker dataFeedWorker = new DataFeedWorker(commandLineArguments);
+    addShutdownHook(dataFeedWorker);
 
-      addShutdownHook(dataFeedWorker);
+    dataFeedWorker.start();
 
-      dataFeedWorker.start();
-
-      if (!commandLineArguments.isFeedContinuously()) {
-        while (true) {
-          if (dataFeedWorker.isProcessing()) {
-            // shutdown only after it started processing
-            dataFeedWorker.shutdown();
-            break;
-          }
+    if (!commandLineArguments.isFeedContinuously()) {
+      while (true) {
+        if (dataFeedWorker.isProcessing()) {
+          // shutdown only after it started processing
+          dataFeedWorker.shutdown();
+          break;
         }
       }
-
-      dataFeedWorker.join(); // main thread waits for it to finish
-
-    } catch (MissingArgumentException exception) {
-      log.error(exception.getMessage());
-    } catch (Exception exception) {
-      log.error("Unexpected exception: ", exception);
-    } finally {
-      log.info("\nPress Enter to exit...");
-      System.in.read();
     }
 
+    dataFeedWorker.join(); // main thread waits for it to finish
   }
 
   private static void addShutdownHook(DataFeedWorker dataFeedWorker) {
