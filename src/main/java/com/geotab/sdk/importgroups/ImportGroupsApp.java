@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class ImportGroupsApp {
@@ -92,7 +91,7 @@ public class ImportGroupsApp {
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
       return rows
-          .filter(row -> StringUtils.isNotEmpty(row) && !row.startsWith("#"))
+          .filter(row -> row != null && !row.startsWith("#"))
           .map(row -> {
             String[] columns = row.split(",");
             return CsvGroupEntry.builder()
@@ -148,7 +147,7 @@ public class ImportGroupsApp {
 
         // If there is no parent node name or if the parent node's name matches organization
         // or entire organization create a new CompanyGroup object.
-        if (StringUtils.isEmpty(parentGroupName)
+        if (parentGroupName == null || parentGroupName.isEmpty()
             || "organization".equals(parentGroupName.toLowerCase())
             || "entire organization".equals(parentGroupName.toLowerCase())) {
           parentGroup = new CompanyGroup();

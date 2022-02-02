@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 
 @Slf4j
 public class CsvExporter implements Exporter {
@@ -62,7 +60,7 @@ public class CsvExporter implements Exporter {
   private String outputPath;
 
   public CsvExporter(String outputPath) {
-    this.outputPath = StringUtils.isNotEmpty(outputPath) ? outputPath : ".";
+    this.outputPath = outputPath != null && !outputPath.isEmpty() ? outputPath : ".";
 
     if (!Files.exists(Paths.get(this.outputPath))) {
       try {
@@ -171,7 +169,7 @@ public class CsvExporter implements Exporter {
                     logRecord.getSpeed() != null ? logRecord.getSpeed().toString() : "",
                 }
             )
-            .map(StringEscapeUtils::escapeCsv)
+            .map(CsvExporter::escapeCsv)
             .toArray(String[]::new)
         )
         .collect(Collectors.toList());
@@ -202,7 +200,7 @@ public class CsvExporter implements Exporter {
                         data.getDiagnostic().getUnitOfMeasure()) : ""
                 }
             )
-            .map(StringEscapeUtils::escapeCsv)
+            .map(CsvExporter::escapeCsv)
             .toArray(String[]::new)
         )
         .collect(Collectors.toList());
@@ -243,7 +241,7 @@ public class CsvExporter implements Exporter {
                         .replace(",", " ") : ""
                 }
             )
-            .map(StringEscapeUtils::escapeCsv)
+            .map(CsvExporter::escapeCsv)
             .toArray(String[]::new)
         )
         .collect(Collectors.toList());
@@ -275,7 +273,7 @@ public class CsvExporter implements Exporter {
                     trip.getDistance() != null ? trip.getDistance().toString() : ""
                 }
             )
-            .map(StringEscapeUtils::escapeCsv)
+            .map(CsvExporter::escapeCsv)
             .toArray(String[]::new)
         )
         .collect(Collectors.toList());
@@ -284,6 +282,11 @@ public class CsvExporter implements Exporter {
   private String getName(NameEntity entity) {
     return entity.isSystemEntity() ? entity.getClass().getSimpleName().replace(",", " ")
         : entity.getName().replace(",", " ");
+  }
+
+  public static String escapeCsv(final String input)  {
+    final String Q = String.valueOf('"');
+    return !input.contains(Q) ? input : Q + input.replaceAll(Q, Q + Q) + Q;
   }
 
 }

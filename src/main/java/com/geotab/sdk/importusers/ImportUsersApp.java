@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class ImportUsersApp {
@@ -101,7 +100,7 @@ public class ImportUsersApp {
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
       return rows
-          .filter(row -> StringUtils.isNotEmpty(row) && !row.startsWith("#"))
+          .filter(row -> row != null && !row.startsWith("#"))
           .map(row -> {
             String[] columns = row.split(",");
             String userName = columns[0].trim();
@@ -304,7 +303,7 @@ public class ImportUsersApp {
   private static List<Group> filterSecurityGroupsByName(String name, List<Group> securityGroups) {
     List<Group> groups = new ArrayList<>();
 
-    if (StringUtils.isNotEmpty(name)) {
+    if (name != null && !name.isEmpty()) {
       name = name.trim().toLowerCase();
       if (name.equals("administrator") || name.equals("admin")) {
         name = "**EverythingSecurity**";

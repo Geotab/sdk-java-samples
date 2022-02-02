@@ -7,7 +7,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.List;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 /**
@@ -86,7 +85,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
    * @return The Entity.
    */
   public T get(String id) {
-    if (StringUtils.isEmpty(id)) {
+    if (id == null || id.isEmpty()) {
       return noEntity;
     }
 

@@ -1,6 +1,7 @@
 package com.geotab.sdk.importdevices;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static java.util.Optional.ofNullable;
 
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
@@ -30,7 +31,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class ImportDevicesApp {
@@ -102,7 +102,7 @@ public class ImportDevicesApp {
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
       return rows
-          .filter(row -> StringUtils.isNotEmpty(row) && !row.startsWith("#"))
+          .filter(row -> row != null && !row.startsWith("#"))
           .map(row -> {
             String[] columns = row.split(",");
             return CsvDeviceEntry.builder()
@@ -193,11 +193,10 @@ public class ImportDevicesApp {
 
         // A devices and nodes have a many to many relationship.
         // In the .csv file if a device belongs to multiple nodes we separate with a pipe character.
-        String[] groupNames = Optional.ofNullable(deviceEntry.getNodeName()).orElse("")
-            .split("\\|");
+        String[] groupNames = ofNullable(deviceEntry.getNodeName()).orElse("").split("\\|");
 
         // If there are no nodes for the device specified in the .csv we will try to assign to Org
-        if (hasOrgGroupScope && StringUtils.isEmpty(deviceEntry.getNodeName())) {
+        if (hasOrgGroupScope && ofNullable(deviceEntry.getNodeName()).orElse("").isEmpty()) {
           deviceGroups.add(new CompanyGroup());
         }
 
