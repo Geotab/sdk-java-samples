@@ -1,22 +1,29 @@
 package com.geotab.sdk.getlogs;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.http.request.MultiCallRequest.multiCallRequestBuilder;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
 import com.geotab.http.request.AuthenticatedRequest;
+import com.geotab.http.request.BaseRequest;
+import com.geotab.http.request.MultiCallRequest;
+import com.geotab.http.request.param.MultiCallParameters;
 import com.geotab.http.request.param.SearchParameters;
+import com.geotab.http.request.param.SearchParameters.SearchParametersBuilder;
+import com.geotab.http.response.BaseResponse;
 import com.geotab.http.response.DeviceListResponse;
-import com.geotab.http.response.LogRecordListResponse;
 import com.geotab.model.entity.device.Device;
 import com.geotab.model.entity.logrecord.LogRecord;
 import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.DeviceSearch;
 import com.geotab.model.search.LogRecordSearch;
+import com.geotab.model.search.Search;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GetLogsApp {
 
   public static void main(String[] args) {
-    if (args.length != 5) {
+    if (args.length < 4) {
       System.out.println("Command line parameters:");
       System.out.println(
           "java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.getlogs.GetLogsApp"
@@ -57,7 +64,7 @@ public class GetLogsApp {
     String database = args[1];
     String username = args[2];
     String password = args[3];
-    String serialNumber = args[4];
+    String serialNumber = args.length > 4 ? args[4] : "";
 
     Credentials credentials = Credentials.builder()
         .database(database)
@@ -88,30 +95,28 @@ public class GetLogsApp {
       }
 
       // Get device by serialNumber
-      Device device = null;
+      List<Device> devices = null;
       try {
+        SearchParametersBuilder<Search> deviceSearch = SearchParameters.searchParamsBuilder()
+            .credentials(loginResult.getCredentials()).resultsLimit(10)
+            .typeName("Device");
+        if (!serialNumber.isEmpty()) {
+          deviceSearch.search(DeviceSearch.builder().serialNumber(serialNumber).build());
+        }
         AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
             .method("Get")
-            .params(SearchParameters.searchParamsBuilder()
-                .credentials(loginResult.getCredentials())
-                .typeName("Device")
-                .search(
-                    DeviceSearch.builder()
-                        .serialNumber(serialNumber)
-                        .build()
-                )
-                .build())
+            .params(deviceSearch.build())
             .build();
 
         Optional<List<Device>> deviceListResponse = api.call(request, DeviceListResponse.class);
         if (!deviceListResponse.isPresent() || deviceListResponse.get().isEmpty()) {
-          log.error("Device not found");
+          log.error("No device found");
           System.exit(1);
         }
 
-        device = deviceListResponse.get().get(0);
+        devices = deviceListResponse.get();
       } catch (Exception exception) {
-        log.error("Failed to get device: ", exception);
+        log.error("Failed to get devices: ", exception);
         System.exit(1);
       }
 
@@ -120,38 +125,51 @@ public class GetLogsApp {
         LocalDateTime toDate = nowUtcLocalDateTime();
         LocalDateTime fromDate = toDate.minusDays(7);
 
-        AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-            .method("Get")
-            .params(SearchParameters.searchParamsBuilder()
-                .credentials(loginResult.getCredentials())
-                .typeName("LogRecord")
-                .search(
-                    LogRecordSearch.builder()
-                        .deviceSearch(device.getId())
-                        .fromDate(fromDate)
-                        .toDate(toDate)
-                        .build()
-                )
-                .build())
-            .build();
+        List<BaseRequest<?>> requests = new ArrayList<>();
 
-        Optional<List<LogRecord>> logRecordListResponse = api
-            .call(request, LogRecordListResponse.class);
+        for (Device device : devices) {
+          requests.add(AuthenticatedRequest.authRequestBuilder()
+              .method("Get")
+              .params(SearchParameters.searchParamsBuilder()
+                  .credentials(loginResult.getCredentials())
+                  .typeName("LogRecord")
+                  .search(LogRecordSearch.builder()
+                      .deviceSearch(device.getId())
+                      .fromDate(fromDate)
+                      .toDate(toDate)
+                      .build())
+                  .build())
+              .build());
+        }
 
-        if (!logRecordListResponse.isPresent() || logRecordListResponse.get().isEmpty()) {
+        Optional<List<List<LogRecord>>> result = api.multiCall(multiCallRequestBuilder()
+            .params(MultiCallParameters.multiCallParamsBuilder().calls(requests).build())
+            .build(), MultiCallLogRecordsResponse.class);
+
+        if (!result.isPresent() || result.get().isEmpty()) {
           log.info("No Logs Found");
         } else {
-          // We will display the Lat, Lon, and Date of each Log as a row.
-          logRecordListResponse.get().forEach(
-              logRecord -> System.out.println(
-                  "Lat: " + logRecord.getLatitude()
-                      + " Lon: " + logRecord.getLongitude()
-                      + " Date: " + logRecord.getDateTime())
-          );
+          List<List<LogRecord>> get = result.get();
+          for (int i = 0; i < get.size(); i++) {
+            Device device = devices.get(i);
+            List<LogRecord> logs = get.get(i);
+            // We will display the Lat, Lon, and Date of each Log as a row.
+            for (LogRecord logRecord : logs) {
+              System.out.println(device.getSerialNumber()
+                  + " Lat: " + logRecord.getLatitude()
+                  + " Lon: " + logRecord.getLongitude()
+                  + " Date: " + logRecord.getDateTime());
+            }
+
+          }
         }
       } catch (Exception exception) {
         log.error("Failed to get logs: ", exception);
       }
     }
+  }
+
+  static class MultiCallLogRecordsResponse extends BaseResponse<List<List<LogRecord>>> {
+
   }
 }
