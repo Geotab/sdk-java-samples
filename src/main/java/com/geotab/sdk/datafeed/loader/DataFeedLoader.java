@@ -38,7 +38,7 @@ import org.apache.hc.core5.http.HttpException;
 @Slf4j
 public class DataFeedLoader {
 
-  private static final Map<Class, Class> FEED_RESULT_TYPE = ImmutableMap.<Class, Class>builder()
+  private static final Map<Class<?>, Class<?>> FEED_RESULT_TYPE = ImmutableMap.<Class<?>, Class<?>>builder()
       .put(LogRecord.class, GetFeedLogRecordResponse.class)
       .put(StatusData.class, GetFeedStatusDataResponse.class)
       .put(FaultData.class, GetFeedFaultDataResponse.class)
@@ -227,8 +227,8 @@ public class DataFeedLoader {
     return trips;
   }
 
-  private <T extends Entity> Optional<FeedResult<T>> getFeed(Class<T> type, String fromVersion)
-      throws Exception {
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private <T extends Entity> Optional<FeedResult<T>> getFeed(Class<T> type, String fromVersion) throws Exception {
 
     log.info("Get data feed for {} fromVersion {}", type.getSimpleName(), fromVersion);
 

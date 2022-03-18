@@ -9,7 +9,6 @@ import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.BaseRequest;
-import com.geotab.http.request.MultiCallRequest;
 import com.geotab.http.request.param.MultiCallParameters;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.request.param.SearchParameters.SearchParametersBuilder;
@@ -142,9 +141,12 @@ public class GetLogsApp {
               .build());
         }
 
+        class DummyClassToShareTheType extends BaseResponse<List<List<LogRecord>>> {
+        }
+
         Optional<List<List<LogRecord>>> result = api.multiCall(multiCallRequestBuilder()
             .params(MultiCallParameters.multiCallParamsBuilder().calls(requests).build())
-            .build(), MultiCallLogRecordsResponse.class);
+            .build(), DummyClassToShareTheType.class);
 
         if (!result.isPresent() || result.get().isEmpty()) {
           log.info("No Logs Found");
@@ -167,9 +169,5 @@ public class GetLogsApp {
         log.error("Failed to get logs: ", exception);
       }
     }
-  }
-
-  static class MultiCallLogRecordsResponse extends BaseResponse<List<List<LogRecord>>> {
-
   }
 }
