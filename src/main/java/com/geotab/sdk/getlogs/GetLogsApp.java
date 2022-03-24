@@ -11,7 +11,6 @@ import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.BaseRequest;
 import com.geotab.http.request.param.MultiCallParameters;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.request.param.SearchParameters.SearchParametersBuilder;
 import com.geotab.http.response.BaseResponse;
 import com.geotab.http.response.DeviceListResponse;
 import com.geotab.model.entity.device.Device;
@@ -20,7 +19,6 @@ import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.DeviceSearch;
 import com.geotab.model.search.LogRecordSearch;
-import com.geotab.model.search.Search;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,15 +94,12 @@ public class GetLogsApp {
       // Get device by serialNumber
       List<Device> devices = null;
       try {
-        SearchParametersBuilder<Search> deviceSearch = SearchParameters.searchParamsBuilder()
-            .credentials(loginResult.getCredentials()).resultsLimit(10)
-            .typeName("Device");
-        if (!serialNumber.isEmpty()) {
-          deviceSearch.search(DeviceSearch.builder().serialNumber(serialNumber).build());
-        }
         AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
             .method("Get")
-            .params(deviceSearch.build())
+            .params(SearchParameters.searchParamsBuilder()
+                .credentials(loginResult.getCredentials()).resultsLimit(10).typeName("Device")
+                .search(serialNumber.isEmpty() ? null : DeviceSearch.builder().serialNumber(serialNumber).build())
+                .build())
             .build();
 
         Optional<List<Device>> deviceListResponse = api.call(request, DeviceListResponse.class);

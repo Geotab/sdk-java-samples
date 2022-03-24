@@ -64,10 +64,7 @@ public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
 
   @Override
   protected FailureMode createFakeCacheable(String id) {
-    log.debug(
-        "No FailureMode with id {} found in Geotab; creating a fake FailureMode to cache it.",
-        id);
+    log.debug("No FailureMode with id {} found in Geotab; creating a fake FailureMode to cache it.", id);
     return FailureMode.failureModeBuilder().id(id).build();
   }
-
 }

@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 /**
  * The result of a Feed call.
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder
 public class DataFeedResult {
 

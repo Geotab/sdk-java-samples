@@ -4,6 +4,7 @@ import com.geotab.api.GeotabApi;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.UnitOfMeasureListResponse;
+import com.geotab.model.Id;
 import com.geotab.model.entity.unitofmeasure.UnitOfMeasure;
 import com.geotab.model.entity.unitofmeasure.UnitOfMeasureNone;
 import com.geotab.model.search.IdSearch;
@@ -66,10 +67,9 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
 
   @Override
   protected UnitOfMeasure createFakeCacheable(String id) {
-    log.debug(
-        "No UnitOfMeasure with id {} found in Geotab; creating a fake UnitOfMeasure to cache it.",
-        id);
-    return UnitOfMeasure.builder().id(id).build();
+    log.debug("No UnitOfMeasure with id {} found in Geotab; creating a fake UnitOfMeasure to cache it.", id);
+    UnitOfMeasure out = new UnitOfMeasure();
+    out.setId(new Id(id));
+    return out;
   }
-
 }

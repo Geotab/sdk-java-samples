@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 /**
  * Contains latest data tokens.
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder
 public class DataFeedParameters {
 

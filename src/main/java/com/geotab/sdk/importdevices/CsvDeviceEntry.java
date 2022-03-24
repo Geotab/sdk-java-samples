@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 /**
  * Models a row from a file with {@link Device} data.
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 @Builder
 public class CsvDeviceEntry {
 
