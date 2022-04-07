@@ -5,11 +5,12 @@ import com.geotab.sdk.datafeed.exporter.Exporter;
 import com.geotab.sdk.datafeed.loader.DataFeedLoader;
 import com.geotab.sdk.datafeed.loader.DataFeedResult;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class DataFeedWorker extends Thread {
 
+  private static final Logger log = LoggerFactory.getLogger(DataFeedWorker.class);
   private AtomicBoolean isAlive = new AtomicBoolean(true);
   private AtomicBoolean isProccessing = new AtomicBoolean(false);
 

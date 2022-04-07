@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ImportGroupsApp {
+
+  private static final Logger log = LoggerFactory.getLogger(ImportGroupsApp.class);
 
   public static void main(String[] args) {
     if (args.length != 5) {
@@ -85,10 +87,10 @@ public class ImportGroupsApp {
           .filter(row -> row != null && !row.startsWith("#"))
           .map(row -> {
             String[] columns = row.split(",");
-            return CsvGroupEntry.builder()
-                .parentGroupName(columns[0])
-                .groupName(columns[1])
-                .build();
+            CsvGroupEntry out = new CsvGroupEntry();
+            out.parentGroupName = columns[0];
+            out.groupName = columns[1];
+            return out;
           })
           .collect(Collectors.toList());
     } catch (Exception exception) {
@@ -134,7 +136,7 @@ public class ImportGroupsApp {
 
         // When adding a node it, must have a parent.
         Group parentGroup;
-        String parentGroupName = groupEntry.getParentGroupName();
+        String parentGroupName = groupEntry.parentGroupName;
 
         // If there is no parent node name or if the parent node's name matches organization
         // or entire organization create a new CompanyGroup object.
@@ -164,24 +166,24 @@ public class ImportGroupsApp {
         // If the parent is null then we cannot add the Group.
         // So we write to the console and try to add the next node.
         if (parentGroup == null) {
-          log.info("No parent for Group {}", groupEntry.getGroupName());
+          log.info("No parent for Group {}", groupEntry.groupName);
           continue;
         }
 
         // Adding the new node //
 
         // If a node exists with this name we wont add it and try to add the next node.
-        Optional<Group> groupFromServer = findGroup(existingGroups, groupEntry.getGroupName());
+        Optional<Group> groupFromServer = findGroup(existingGroups, groupEntry.groupName);
         if (groupFromServer.isPresent()) {
           log.info("A group with the name '{}' already exists, please change this group name.",
-              groupEntry.getGroupName());
+              groupEntry.groupName);
           continue;
         }
 
         try {
           // Create the group object.
           Group newGroup = Group.builder()
-              .name(groupEntry.getGroupName())
+              .name(groupEntry.groupName)
               .parent(parentGroup)
               .build();
 
@@ -198,13 +200,13 @@ public class ImportGroupsApp {
 
           if (response.isPresent()) {
             log.info("Group {} added with id {} .",
-                groupEntry.getGroupName(), response.get().getId());
+                groupEntry.groupName, response.get().getId());
           } else {
-            log.warn("Group {} not added; no id returned", groupEntry.getGroupName());
+            log.warn("Group {} not added; no id returned", groupEntry.groupName);
           }
         } catch (Exception exception) {
           // Catch and display any error that occur when adding the group
-          log.error("Failed to import group {}", groupEntry.getGroupName(), exception);
+          log.error("Failed to import group {}", groupEntry.groupName, exception);
         }
 
       }

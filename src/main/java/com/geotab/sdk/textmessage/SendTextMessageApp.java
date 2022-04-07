@@ -30,10 +30,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class SendTextMessageApp {
+
+  private static final Logger log = LoggerFactory.getLogger(SendTextMessageApp.class);
 
   public static void main(String[] args) {
     if (args.length != 4) {

@@ -19,7 +19,7 @@ import com.geotab.model.entity.user.User;
 import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.GroupSearch;
-import com.geotab.util.CollectionUtil;
+import com.google.common.collect.Iterables;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -28,10 +28,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ImportUsersApp {
+
+  private static final Logger log = LoggerFactory.getLogger(ImportUsersApp.class);
 
   public static void main(String[] args) {
     if (args.length != 5) {
@@ -115,11 +117,11 @@ public class ImportUsersApp {
                 .isEmailReportEnabled(true)
                 .build();
 
-            return UserDetails.builder()
-                .user(user)
-                .organizationNodeNames(organizationNodes)
-                .securityNodeName(securityNodes)
-                .build();
+            UserDetails out = new UserDetails();
+            out.user = user;
+            out.organizationNodeNames = organizationNodes;
+            out.securityNodeName = securityNodes;
+            return out;
           })
           .collect(Collectors.toList());
     } catch (Exception exception) {
@@ -164,13 +166,9 @@ public class ImportUsersApp {
 
       for (UserDetails userDetails : userEntries) {
         // Add groups to user
-        User user = userDetails.getUser();
-        user.setCompanyGroups(
-            getOrganizationGroups(userDetails.getOrganizationNodeNames().split("\\|"),
-                existingGroups));
-        user.setSecurityGroups(
-            filterSecurityGroupsByName(userDetails.getSecurityNodeName(), securityGroups));
-
+        User user = userDetails.user;
+        user.setCompanyGroups(getOrganizationGroups(userDetails.organizationNodeNames.split("\\|"), existingGroups));
+        user.setSecurityGroups(filterSecurityGroupsByName(userDetails.securityNodeName, securityGroups));
         if (isUserValid(user, existingUsers)) {
           try {
             // Add the user.
@@ -323,11 +321,11 @@ public class ImportUsersApp {
    * Validate a user has groups assigned and does not exist.
    */
   private static boolean isUserValid(User user, List<User> existingUsers) {
-    if (CollectionUtil.isEmpty(user.getCompanyGroups())) {
+    if (Iterables.isEmpty(user.getCompanyGroups())) {
       log.warn("Invalid user: {}. Must have organization nodes.", user.getName());
       return false;
     }
-    if (CollectionUtil.isEmpty(user.getSecurityGroups())) {
+    if (Iterables.isEmpty(user.getSecurityGroups())) {
       log.warn("Invalid user: {}. Must have security nodes.", user.getName());
       return false;
     }

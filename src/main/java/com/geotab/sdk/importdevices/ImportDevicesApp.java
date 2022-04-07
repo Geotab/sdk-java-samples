@@ -30,10 +30,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ImportDevicesApp {
+
+  private static final Logger log = LoggerFactory.getLogger(ImportDevicesApp.class);
 
   public static void main(String[] args) {
     if (args.length != 5) {
@@ -96,12 +98,12 @@ public class ImportDevicesApp {
           .filter(row -> row != null && !row.startsWith("#"))
           .map(row -> {
             String[] columns = row.split(",");
-            return CsvDeviceEntry.builder()
-                .description(columns[0])
-                .serialNumber(columns[1])
-                .nodeName(columns.length > 2 ? columns[2] : "")
-                .vin(columns.length > 3 ? columns[3] : "")
-                .build();
+            CsvDeviceEntry out = new CsvDeviceEntry();
+            out.description = columns[0];
+            out.serialNumber = columns[1];
+            out.nodeName = columns.length > 2 ? columns[2] : "";
+            out.vin = columns.length > 3 ? columns[3] : "";
+            return out;
           })
           .collect(Collectors.toList());
     } catch (Exception exception) {
@@ -184,10 +186,10 @@ public class ImportDevicesApp {
 
         // A devices and nodes have a many to many relationship.
         // In the .csv file if a device belongs to multiple nodes we separate with a pipe character.
-        String[] groupNames = ofNullable(deviceEntry.getNodeName()).orElse("").split("\\|");
+        String[] groupNames = ofNullable(deviceEntry.nodeName).orElse("").split("\\|");
 
         // If there are no nodes for the device specified in the .csv we will try to assign to Org
-        if (hasOrgGroupScope && ofNullable(deviceEntry.getNodeName()).orElse("").isEmpty()) {
+        if (hasOrgGroupScope && ofNullable(deviceEntry.nodeName).orElse("").isEmpty()) {
           deviceGroups.add(new CompanyGroup());
         }
 
@@ -205,7 +207,7 @@ public class ImportDevicesApp {
 
             if (!existingGroup.isPresent()) {
               log.warn("Device Rejected - {} . Group {} does not exist.",
-                  deviceEntry.getDescription(), groupName);
+                  deviceEntry.description, groupName);
               deviceRejected = true;
               break;
             }
@@ -224,18 +226,18 @@ public class ImportDevicesApp {
         boolean deviceExists = existingDevices
             .stream()
             .anyMatch(device -> device.getSerialNumber()
-                .equals(deviceEntry.getSerialNumber().replace("-", "")));
+                .equals(deviceEntry.serialNumber.replace("-", "")));
         if (deviceExists) {
-          log.warn("Device already exists - {} . Ignoring it.", deviceEntry.getDescription());
+          log.warn("Device already exists - {} . Ignoring it.", deviceEntry.description);
           continue;
         }
 
         try {
           // Create the device object.
-          Device newDevice = Device.fromSerialNumber(deviceEntry.getSerialNumber());
-          newDevice.setSerialNumber(deviceEntry.getSerialNumber().replace("-", ""));
+          Device newDevice = Device.fromSerialNumber(deviceEntry.serialNumber);
+          newDevice.setSerialNumber(deviceEntry.serialNumber.replace("-", ""));
           newDevice.populateDefaults();
-          newDevice.setName(deviceEntry.getDescription());
+          newDevice.setName(deviceEntry.description);
           newDevice.setGroups(deviceGroups);
           newDevice.setWorkTime(new WorkTimeStandardHours());
 
@@ -252,13 +254,13 @@ public class ImportDevicesApp {
 
           if (response.isPresent()) {
             log.info("Device {} added with id {} .",
-                deviceEntry.getDescription(), response.get().getId());
+                deviceEntry.description, response.get().getId());
           } else {
-            log.warn("Device {} not added; no id returned", deviceEntry.getDescription());
+            log.warn("Device {} not added; no id returned", deviceEntry.description);
           }
         } catch (Exception exception) {
           // Catch and display any error that occur when adding the device
-          log.error("Failed to import device {}", deviceEntry.getDescription(), exception);
+          log.error("Failed to import device {}", deviceEntry.description, exception);
         }
 
       }

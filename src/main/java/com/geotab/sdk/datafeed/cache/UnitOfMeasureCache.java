@@ -10,15 +10,16 @@ import com.geotab.model.entity.unitofmeasure.UnitOfMeasureNone;
 import com.geotab.model.search.IdSearch;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link UnitOfMeasure} cache singleton. Reloads controllers periodically on demand and caches
  * them.
  */
-@Slf4j
 public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
+
+  private static final Logger log = LoggerFactory.getLogger(UnitOfMeasureCache.class);
 
   public UnitOfMeasureCache(GeotabApi api) {
     super(api, UnitOfMeasureNone.getInstance());
@@ -30,7 +31,7 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
   }
 
   @Override
-  protected Optional<UnitOfMeasure> fetchEntity(String id) throws Exception {
+  protected Optional<UnitOfMeasure> fetchEntity(String id) {
     log.debug("Loading UnitOfMeasure by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -53,7 +54,7 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
   }
 
   @Override
-  protected Optional<List<UnitOfMeasure>> fetchAll() throws Exception {
+  protected Optional<List<UnitOfMeasure>> fetchAll() {
     log.debug("Loading all UnitOfMeasures from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

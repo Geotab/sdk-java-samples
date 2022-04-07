@@ -9,14 +9,15 @@ import com.geotab.model.entity.device.NoDevice;
 import com.geotab.model.search.IdSearch;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Device} cache singleton. Reloads controllers periodically on demand and caches them.
  */
-@Slf4j
 public final class DeviceCache extends GeotabEntityCache<Device> {
+
+  private static final Logger log = LoggerFactory.getLogger(DeviceCache.class);
 
   public DeviceCache(GeotabApi api) {
     super(api, NoDevice.getInstance());
@@ -28,7 +29,7 @@ public final class DeviceCache extends GeotabEntityCache<Device> {
   }
 
   @Override
-  protected Optional<Device> fetchEntity(String id) throws Exception {
+  protected Optional<Device> fetchEntity(String id) {
     log.debug("Loading Device by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -50,7 +51,7 @@ public final class DeviceCache extends GeotabEntityCache<Device> {
   }
 
   @Override
-  protected Optional<List<Device>> fetchAll() throws Exception {
+  protected Optional<List<Device>> fetchAll() {
     log.debug("Loading all Device from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

@@ -28,7 +28,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
         //.expireAfterWrite(12, TimeUnit.HOURS)
         .build(new CacheLoader<String, T>() {
           @Override
-          public T load(String key) throws Exception {
+          public T load(String key) {
             Optional<T> entity = fetchEntity(key);
             return entity.orElseGet(() -> createFakeCacheable(key));
           }
@@ -48,14 +48,14 @@ public abstract class GeotabEntityCache<T extends Entity> {
    * @param id The entity id.
    * @return The Entity.
    */
-  protected abstract Optional<T> fetchEntity(String id) throws Exception;
+  protected abstract Optional<T> fetchEntity(String id);
 
   /**
    * Load all entities from Geotab.
    *
    * @return All entities.
    */
-  protected abstract Optional<List<T>> fetchAll() throws Exception;
+  protected abstract Optional<List<T>> fetchAll();
 
   /**
    * In the extreme unlike scenario when the entity is not found in Geotab system by the id, then

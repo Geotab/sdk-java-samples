@@ -9,14 +9,15 @@ import com.geotab.model.entity.controller.NoController;
 import com.geotab.model.search.ControllerSearch;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Controller} cache singleton. Reloads controllers periodically on demand and caches them.
  */
-@Slf4j
 public final class ControllerCache extends GeotabEntityCache<Controller> {
+
+  private static final Logger log = LoggerFactory.getLogger(ControllerCache.class);
 
   public ControllerCache(GeotabApi api) {
     super(api, NoController.getInstance());
@@ -28,7 +29,7 @@ public final class ControllerCache extends GeotabEntityCache<Controller> {
   }
 
   @Override
-  protected Optional<Controller> fetchEntity(String id) throws Exception {
+  protected Optional<Controller> fetchEntity(String id) {
     log.debug("Loading Controller by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -52,7 +53,7 @@ public final class ControllerCache extends GeotabEntityCache<Controller> {
   }
 
   @Override
-  protected Optional<List<Controller>> fetchAll() throws Exception {
+  protected Optional<List<Controller>> fetchAll() {
     log.debug("Loading all Controllers from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

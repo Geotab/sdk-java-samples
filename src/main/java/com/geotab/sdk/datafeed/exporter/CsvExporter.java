@@ -2,6 +2,8 @@ package com.geotab.sdk.datafeed.exporter;
 
 import static com.geotab.util.DateTimeUtil.localDateTimeToString;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 
 import com.geotab.model.entity.NameEntity;
 import com.geotab.model.entity.device.GoDevice;
@@ -14,7 +16,7 @@ import com.geotab.model.entity.trip.Trip;
 import com.geotab.model.entity.user.Driver;
 import com.geotab.model.entity.user.Key;
 import com.geotab.sdk.datafeed.loader.DataFeedResult;
-import com.geotab.util.CollectionUtil;
+import com.google.common.collect.Iterables;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -24,12 +26,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class CsvExporter implements Exporter {
 
   private static final String[] GPS_DATA_HEADER = new String[]{"Vehicle Name",
@@ -56,6 +57,7 @@ public class CsvExporter implements Exporter {
       "Trip End Time", "Trip Distance"};
 
   private static final String TRIP_FILE_NAME_PREFIX = "Trips";
+  private static final Logger log = LoggerFactory.getLogger(CsvExporter.class);
 
   private String outputPath;
 
@@ -72,10 +74,10 @@ public class CsvExporter implements Exporter {
   }
 
   public void export(DataFeedResult dataFeedResult) throws Exception {
-    exportLogRecords(dataFeedResult.getGpsRecords());
-    exportStatusData(dataFeedResult.getStatusData());
-    exportFaultData(dataFeedResult.getFaultData());
-    exportTrips(dataFeedResult.getTrips());
+    exportLogRecords(dataFeedResult.gpsRecords);
+    exportStatusData(dataFeedResult.statusData);
+    exportFaultData(dataFeedResult.faultData);
+    exportTrips(dataFeedResult.trips);
   }
 
   private void exportLogRecords(List<LogRecord> logRecords) throws Exception {
@@ -150,13 +152,12 @@ public class CsvExporter implements Exporter {
   }
 
   private List<String[]> transformLogRecords(List<LogRecord> logRecords) {
-    if (CollectionUtil.isEmpty(logRecords)) {
+    if (Iterables.isEmpty(logRecords)) {
       return new ArrayList<>();
     }
 
     return logRecords.stream()
-        .map(logRecord -> Arrays
-            .stream(
+        .map(logRecord -> stream(
                 new String[]{
                     logRecord.getDevice().getName().replace(",", " "),
                     logRecord.getDevice().getSerialNumber(),
@@ -169,20 +170,19 @@ public class CsvExporter implements Exporter {
                     logRecord.getSpeed() != null ? logRecord.getSpeed().toString() : "",
                 }
             )
-            .map(CsvExporter::escapeCsv)
-            .toArray(String[]::new)
+                .map(CsvExporter::escapeCsv)
+                .toArray(String[]::new)
         )
         .collect(Collectors.toList());
   }
 
   private List<String[]> transformStatusData(List<StatusData> statusData) {
-    if (CollectionUtil.isEmpty(statusData)) {
+    if (Iterables.isEmpty(statusData)) {
       return new ArrayList<>();
     }
 
     return statusData.stream()
-        .map(data -> Arrays
-            .stream(
+        .map(data -> stream(
                 new String[]{
                     data.getDevice().getName().replace(",", " "),
                     data.getDevice().getSerialNumber(),
@@ -200,20 +200,19 @@ public class CsvExporter implements Exporter {
                         data.getDiagnostic().getUnitOfMeasure()) : ""
                 }
             )
-            .map(CsvExporter::escapeCsv)
-            .toArray(String[]::new)
+                .map(CsvExporter::escapeCsv)
+                .toArray(String[]::new)
         )
         .collect(Collectors.toList());
   }
 
   private List<String[]> transformFaultData(List<FaultData> faultData) {
-    if (CollectionUtil.isEmpty(faultData)) {
+    if (Iterables.isEmpty(faultData)) {
       return new ArrayList<>();
     }
 
     return faultData.stream()
-        .map(data -> Arrays
-            .stream(
+        .map(data -> stream(
                 new String[]{
                     data.getDevice().getName().replace(",", " "),
                     data.getDevice().getSerialNumber(),
@@ -241,42 +240,29 @@ public class CsvExporter implements Exporter {
                         .replace(",", " ") : ""
                 }
             )
-            .map(CsvExporter::escapeCsv)
-            .toArray(String[]::new)
+                .map(CsvExporter::escapeCsv)
+                .toArray(String[]::new)
         )
         .collect(Collectors.toList());
   }
 
   private List<String[]> transformTrips(List<Trip> trips) {
-    if (CollectionUtil.isEmpty(trips)) {
+    if (Iterables.isEmpty(trips)) {
       return new ArrayList<>();
     }
 
-    return trips.stream()
-        .map(trip -> Arrays
-            .stream(
-                new String[]{
-                    trip.getDevice().getName().replace(",", " "),
-                    trip.getDevice().getSerialNumber(),
-                    trip.getDevice() instanceof GoDevice
-                        ? ((GoDevice) trip.getDevice()).getVehicleIdentificationNumber()
-                        .replace(",", " ") : "",
-                    getName(trip.getDriver()),
-                    trip.getDriver() instanceof Driver && CollectionUtil
-                        .isEmpty(((Driver) trip.getDriver()).getKeys()) ? ""
-                        : ((Driver) trip.getDriver()).getKeys()
-                            .stream()
-                            .map(Key::getSerialNumber)
-                            .collect(Collectors.joining("~")),
-                    trip.getStart() != null ? localDateTimeToString(trip.getStart()) : "",
-                    trip.getStop() != null ? localDateTimeToString(trip.getStop()) : "",
-                    trip.getDistance() != null ? trip.getDistance().toString() : ""
-                }
-            )
-            .map(CsvExporter::escapeCsv)
-            .toArray(String[]::new)
-        )
-        .collect(Collectors.toList());
+    return trips.stream().map(trip -> new String[]{
+        trip.getDevice().getName().replace(",", " "),
+        trip.getDevice().getSerialNumber(),
+        !(trip.getDevice() instanceof GoDevice) ? ""
+            : ((GoDevice) trip.getDevice()).getVehicleIdentificationNumber().replace(",", " "),
+        getName(trip.getDriver()),
+        trip.getDriver() instanceof Driver && Iterables.isEmpty(((Driver) trip.getDriver()).getKeys()) ? ""
+            : ((Driver) trip.getDriver()).getKeys().stream().map(Key::getSerialNumber).collect(joining("~")),
+        trip.getStart() != null ? localDateTimeToString(trip.getStart()) : "",
+        trip.getStop() != null ? localDateTimeToString(trip.getStop()) : "",
+        trip.getDistance() != null ? trip.getDistance().toString() : ""
+    }).map(array -> stream(array).map(CsvExporter::escapeCsv).toArray(String[]::new)).collect(Collectors.toList());
   }
 
   private String getName(NameEntity entity) {
@@ -284,7 +270,7 @@ public class CsvExporter implements Exporter {
         : entity.getName().replace(",", " ");
   }
 
-  public static String escapeCsv(final String input)  {
+  public static String escapeCsv(final String input) {
     final String Q = String.valueOf('"');
     return !input.contains(Q) ? input : Q + input.replaceAll(Q, Q + Q) + Q;
   }

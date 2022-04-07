@@ -29,13 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.core5.http.HttpException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Data feed loader which queries Geotab's servers for vehicle data.
  */
-@Slf4j
 public class DataFeedLoader {
 
   private static final Map<Class<?>, Class<?>> FEED_RESULT_TYPE = ImmutableMap.<Class<?>, Class<?>>builder()
@@ -44,6 +43,7 @@ public class DataFeedLoader {
       .put(FaultData.class, GetFeedFaultDataResponse.class)
       .put(Trip.class, GetFeedTripResponse.class)
       .build();
+  private static final Logger log = LoggerFactory.getLogger(DataFeedLoader.class);
 
   private GeotabApi geotabApi;
 
@@ -82,19 +82,14 @@ public class DataFeedLoader {
     try {
       reloadCaches();
 
-      List<LogRecord> logRecords = loadLogRecords();
-      List<StatusData> statusData = loadStatusData();
-      List<FaultData> faultData = loadFaultData();
-      List<Trip> trips = loadTrips();
       // TODO loadExceptionEvents()
 
-      return DataFeedResult.builder()
-          .gpsRecords(logRecords)
-          .statusData(statusData)
-          .faultData(faultData)
-          .trips(trips)
-          .build();
-
+      DataFeedResult out = new DataFeedResult();
+      out.gpsRecords = loadLogRecords();
+      out.statusData = loadStatusData();
+      out.faultData = loadFaultData();
+      out.trips = loadTrips();
+      return out;
     } catch (DbUnavailableException dbUnavailableException) {
       log.error("Db unavailable - ", dbUnavailableException);
       try {
@@ -110,23 +105,16 @@ public class DataFeedLoader {
       } catch (InterruptedException e) {
         log.warn("Can not sleep due to OverLimitException", e);
       }
-    } catch (HttpException httpException) {
-      log.error("Http exception - ", httpException);
-      try {
-        Thread.sleep(5 * 1000);
-      } catch (InterruptedException e) {
-        log.warn("Can not sleep due to HttpException", e);
-      }
     } catch (Exception exception) {
       log.error("Can not load data feed", exception);
     }
 
-    return DataFeedResult.builder()
-        .gpsRecords(new ArrayList<>())
-        .statusData(new ArrayList<>())
-        .faultData(new ArrayList<>())
-        .trips(new ArrayList<>())
-        .build();
+    DataFeedResult out = new DataFeedResult();
+    out.gpsRecords = new ArrayList<>();
+    out.statusData = new ArrayList<>();
+    out.faultData = new ArrayList<>();
+    out.trips = new ArrayList<>();
+    return out;
   }
 
   public void stop() {
@@ -149,13 +137,13 @@ public class DataFeedLoader {
     }
   }
 
-  private List<LogRecord> loadLogRecords() throws Exception {
+  private List<LogRecord> loadLogRecords() {
     Optional<FeedResult<LogRecord>> logRecordFeedResult = getFeed(LogRecord.class,
-        dataFeedParameters.getLastGpsDataToken());
+        dataFeedParameters.lastGpsDataToken);
 
     List<LogRecord> logRecords = new ArrayList<>();
     if (logRecordFeedResult.isPresent()) {
-      dataFeedParameters.setLastGpsDataToken(logRecordFeedResult.get().getToVersion());
+      dataFeedParameters.lastGpsDataToken = logRecordFeedResult.get().getToVersion();
       logRecordFeedResult.get().getData()
           .forEach(logRecord -> {
             // Populate relevant LogRecord fields.
@@ -167,13 +155,13 @@ public class DataFeedLoader {
     return logRecords;
   }
 
-  private List<StatusData> loadStatusData() throws Exception {
+  private List<StatusData> loadStatusData() {
     Optional<FeedResult<StatusData>> statusDataFeedResult = getFeed(StatusData.class,
-        dataFeedParameters.getLastStatusDataToken());
+        dataFeedParameters.lastStatusDataToken);
 
     List<StatusData> statusData = new ArrayList<>();
     if (statusDataFeedResult.isPresent()) {
-      dataFeedParameters.setLastStatusDataToken(statusDataFeedResult.get().getToVersion());
+      dataFeedParameters.lastStatusDataToken = statusDataFeedResult.get().getToVersion();
       statusDataFeedResult.get().getData()
           .forEach(data -> {
             // Populate relevant StatusData fields.
@@ -187,13 +175,13 @@ public class DataFeedLoader {
     return statusData;
   }
 
-  private List<FaultData> loadFaultData() throws Exception {
+  private List<FaultData> loadFaultData() {
     Optional<FeedResult<FaultData>> faultDataFeedResult = getFeed(FaultData.class,
-        dataFeedParameters.getLastFaultDataToken());
+        dataFeedParameters.lastFaultDataToken);
 
     List<FaultData> faultData = new ArrayList<>();
     if (faultDataFeedResult.isPresent()) {
-      dataFeedParameters.setLastFaultDataToken(faultDataFeedResult.get().getToVersion());
+      dataFeedParameters.lastFaultDataToken = faultDataFeedResult.get().getToVersion();
       faultDataFeedResult.get().getData()
           .forEach(data -> {
             // Populate relevant FaultData fields.
@@ -208,13 +196,12 @@ public class DataFeedLoader {
     return faultData;
   }
 
-  private List<Trip> loadTrips() throws Exception {
-    Optional<FeedResult<Trip>> tripFeedResult = getFeed(Trip.class,
-        dataFeedParameters.getLastTripToken());
+  private List<Trip> loadTrips() {
+    Optional<FeedResult<Trip>> tripFeedResult = getFeed(Trip.class, dataFeedParameters.lastTripToken);
 
     List<Trip> trips = new ArrayList<>();
     if (tripFeedResult.isPresent()) {
-      dataFeedParameters.setLastTripToken(tripFeedResult.get().getToVersion());
+      dataFeedParameters.lastTripToken = tripFeedResult.get().getToVersion();
       tripFeedResult.get().getData()
           .forEach(trip -> {
             // Populate relevant Trip fields.
@@ -228,7 +215,7 @@ public class DataFeedLoader {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  private <T extends Entity> Optional<FeedResult<T>> getFeed(Class<T> type, String fromVersion) throws Exception {
+  private <T extends Entity> Optional<FeedResult<T>> getFeed(Class<T> type, String fromVersion) {
 
     log.info("Get data feed for {} fromVersion {}", type.getSimpleName(), fromVersion);
 

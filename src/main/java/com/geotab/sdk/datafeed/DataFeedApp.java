@@ -2,7 +2,8 @@ package com.geotab.sdk.datafeed;
 
 import com.geotab.sdk.datafeed.cli.CommandLineArguments;
 import com.geotab.sdk.datafeed.worker.DataFeedWorker;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a console example of obtaining the data feed from the server.
@@ -14,8 +15,9 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>A complete Geotab API object and method reference is available at the Geotab Developer page.
  */
-@Slf4j
 public class DataFeedApp {
+
+  private static final Logger log = LoggerFactory.getLogger(DataFeedApp.class);
 
   public static void main(String[] args) throws Exception {
     CommandLineArguments commandLineArguments = new CommandLineArguments(args);

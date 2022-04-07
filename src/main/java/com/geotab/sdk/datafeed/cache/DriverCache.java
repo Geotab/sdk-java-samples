@@ -12,14 +12,15 @@ import com.geotab.model.search.UserSearch;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Driver} cache singleton. Reloads controllers periodically on demand and caches them.
  */
-@Slf4j
 public final class DriverCache extends GeotabEntityCache<Driver> {
+
+  private static final Logger log = LoggerFactory.getLogger(DriverCache.class);
 
   public DriverCache(GeotabApi api) {
     super(api, NoDriver.getInstance());
@@ -31,7 +32,7 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
   }
 
   @Override
-  protected Optional<Driver> fetchEntity(String id) throws Exception {
+  protected Optional<Driver> fetchEntity(String id) {
     log.debug("Loading Driver by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -58,7 +59,7 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
   }
 
   @Override
-  protected Optional<List<Driver>> fetchAll() throws Exception {
+  protected Optional<List<Driver>> fetchAll() {
     log.debug("Loading all Drivers from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

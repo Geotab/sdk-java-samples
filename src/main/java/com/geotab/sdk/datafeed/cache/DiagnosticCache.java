@@ -10,15 +10,15 @@ import com.geotab.model.entity.diagnostic.NoDiagnostic;
 import com.geotab.model.search.IdSearch;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link Diagnostic} cache singleton. Reloads controllers periodically on demand and caches them.
  */
-@Slf4j
 public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
 
+  private static final Logger log = LoggerFactory.getLogger(DiagnosticCache.class);
   private ControllerCache controllerCache;
   private UnitOfMeasureCache unitOfMeasureCache;
 
@@ -38,7 +38,7 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   }
 
   @Override
-  protected Optional<Diagnostic> fetchEntity(String id) throws Exception {
+  protected Optional<Diagnostic> fetchEntity(String id) {
     log.debug("Loading Diagnostic by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -60,7 +60,7 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   }
 
   @Override
-  protected Optional<List<Diagnostic>> fetchAll() throws Exception {
+  protected Optional<List<Diagnostic>> fetchAll() {
     log.debug("Loading all Diagnostic from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

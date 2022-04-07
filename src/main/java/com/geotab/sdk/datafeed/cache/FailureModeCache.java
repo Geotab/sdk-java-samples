@@ -9,14 +9,15 @@ import com.geotab.model.entity.failuremode.NoFailureMode;
 import com.geotab.model.search.IdSearch;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link FailureMode} cache singleton. Reloads controllers periodically on demand and caches them.
  */
-@Slf4j
 public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
+
+  private static final Logger log = LoggerFactory.getLogger(FailureModeCache.class);
 
   public FailureModeCache(GeotabApi api) {
     super(api, NoFailureMode.getInstance());
@@ -28,7 +29,7 @@ public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
   }
 
   @Override
-  protected Optional<FailureMode> fetchEntity(String id) throws Exception {
+  protected Optional<FailureMode> fetchEntity(String id) {
     log.debug("Loading FailureMode by id {} from Geotab ...", id);
 
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -50,7 +51,7 @@ public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
   }
 
   @Override
-  protected Optional<List<FailureMode>> fetchAll() throws Exception {
+  protected Optional<List<FailureMode>> fetchAll() {
     log.debug("Loading all FailureMode from Geotab ...");
     AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
         .method("Get")

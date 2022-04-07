@@ -2,7 +2,6 @@ package com.geotab.sdk.datafeed.cli;
 
 import com.geotab.model.login.Credentials;
 import com.geotab.sdk.datafeed.loader.DataFeedParameters;
-import lombok.Data;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -11,7 +10,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-@Data
 public class CommandLineArguments {
 
   private static final String SERVER_ARG_NAME = "s";
@@ -161,34 +159,47 @@ public class CommandLineArguments {
     return options;
   }
 
-  private void extractValues(CommandLine commandLine) {
-    this.server = commandLine.getOptionValue(SERVER_ARG_NAME);
+  private void extractValues(CommandLine cl) {
+    this.server = cl.getOptionValue(SERVER_ARG_NAME);
     this.credentials = Credentials.builder()
-        .database(commandLine.getOptionValue(DATABASE_ARG_NAME))
-        .userName(commandLine.getOptionValue(USER_ARG_NAME))
-        .password(commandLine.getOptionValue(PASSWORD_ARG_NAME))
+        .database(cl.getOptionValue(DATABASE_ARG_NAME))
+        .userName(cl.getOptionValue(USER_ARG_NAME))
+        .password(cl.getOptionValue(PASSWORD_ARG_NAME))
         .build();
-    this.dataFeedParameters = DataFeedParameters.builder()
-        .lastGpsDataToken(commandLine.hasOption(GPS_TOKEN_ARG_NAME)
-            ? commandLine.getOptionValue(GPS_TOKEN_ARG_NAME) : null
-        )
-        .lastStatusDataToken(commandLine.hasOption(STATUS_DATA_TOKEN_ARG_NAME)
-            ? commandLine.getOptionValue(STATUS_DATA_TOKEN_ARG_NAME) : null
-        )
-        .lastFaultDataToken(commandLine.hasOption(FAULT_DATA_TOKEN_ARG_NAME)
-            ? commandLine.getOptionValue(FAULT_DATA_TOKEN_ARG_NAME) : null
-        )
-        .lastTripToken(commandLine.hasOption(TRIP_TOKEN_ARG_NAME)
-            ? commandLine.getOptionValue(TRIP_TOKEN_ARG_NAME) : null
-        )
-        .lastExceptionToken(commandLine.hasOption(EXCEPTION_TOKEN_ARG_NAME)
-            ? commandLine.getOptionValue(EXCEPTION_TOKEN_ARG_NAME) : null
-        )
-        .build();
-    this.exportType = commandLine.getOptionValue(EXPORT_TYPE_ARG_NAME);
-    this.outputPath = commandLine.getOptionValue(OUTPUT_FOLDER_ARG_NAME);
-    this.feedContinuously =
-        commandLine.hasOption(FEED_CONTINUOUSLY_ARG_NAME)
-            && Boolean.parseBoolean(commandLine.getOptionValue(FEED_CONTINUOUSLY_ARG_NAME));
+    this.dataFeedParameters = new DataFeedParameters();
+    DataFeedParameters f = this.dataFeedParameters;
+    if (cl.hasOption(GPS_TOKEN_ARG_NAME)) f.lastGpsDataToken = cl.getOptionValue(GPS_TOKEN_ARG_NAME);
+    if (cl.hasOption(STATUS_DATA_TOKEN_ARG_NAME)) f.lastStatusDataToken = cl.getOptionValue(STATUS_DATA_TOKEN_ARG_NAME);
+    if (cl.hasOption(FAULT_DATA_TOKEN_ARG_NAME)) f.lastFaultDataToken = cl.getOptionValue(FAULT_DATA_TOKEN_ARG_NAME);
+    if (cl.hasOption(TRIP_TOKEN_ARG_NAME)) f.lastTripToken = cl.getOptionValue(TRIP_TOKEN_ARG_NAME);
+    if (cl.hasOption(EXCEPTION_TOKEN_ARG_NAME)) f.lastExceptionToken = cl.getOptionValue(EXCEPTION_TOKEN_ARG_NAME);
+    this.exportType = cl.getOptionValue(EXPORT_TYPE_ARG_NAME);
+    this.outputPath = cl.getOptionValue(OUTPUT_FOLDER_ARG_NAME);
+    this.feedContinuously = cl.hasOption(FEED_CONTINUOUSLY_ARG_NAME)
+        && Boolean.parseBoolean(cl.getOptionValue(FEED_CONTINUOUSLY_ARG_NAME));
+  }
+
+  public String getServer() {
+    return this.server;
+  }
+
+  public Credentials getCredentials() {
+    return this.credentials;
+  }
+
+  public DataFeedParameters getDataFeedParameters() {
+    return this.dataFeedParameters;
+  }
+
+  public String getExportType() {
+    return this.exportType;
+  }
+
+  public String getOutputPath() {
+    return this.outputPath;
+  }
+
+  public boolean isFeedContinuously() {
+    return this.feedContinuously;
   }
 }
