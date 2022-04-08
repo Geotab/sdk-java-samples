@@ -2,6 +2,7 @@ package com.geotab.sdk.getlogs;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.out;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -11,9 +12,10 @@ import com.geotab.api.GeotabApi;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.entity.device.Device;
 import com.geotab.model.entity.logrecord.LogRecord;
-import com.geotab.model.login.Credentials;
 import com.geotab.model.search.DeviceSearch;
 import com.geotab.model.search.LogRecordSearch;
+import com.geotab.sdk.Util.Arg;
+import com.geotab.sdk.Util.Cmd;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -32,18 +34,14 @@ import java.util.function.Supplier;
 public class GetLogsApp {
 
   public static void main(String[] args) {
-    Credentials credentials = Credentials.builder()
-        .database(System.getProperty("database"))
-        .password(System.getProperty("password"))
-        .userName(System.getProperty("username"))
-        .build();
-    String serialNumber = System.getProperty("serialNumber", "");
+    Cmd cmd = new Cmd(GetLogsApp.class, new Arg("serialNumber", false, "Serial number of the device"));
+    String serialNumber = cmd.get("serialNumber");
 
-    try (GeotabApi api = new GeotabApi(credentials, System.getProperty("server"), DEFAULT_TIMEOUT)) {
+    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
       // Get all devices or, if SN is available, only one device by serial number
       List<Device> devices = api.callGet(SearchParameters.searchParamsBuilder()
           .resultsLimit(10).typeName("Device")
-          .search(serialNumber.isEmpty() ? null : DeviceSearch.builder().serialNumber(serialNumber).build())
+          .search(isNullOrEmpty(serialNumber) ? null : DeviceSearch.builder().serialNumber(serialNumber).build())
           .build(), Device.class).orElse(Collections.emptyList());
 
       // Get logs for all (or one SN) devices

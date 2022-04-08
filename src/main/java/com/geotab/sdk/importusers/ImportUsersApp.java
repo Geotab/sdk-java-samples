@@ -16,9 +16,10 @@ import com.geotab.model.Id;
 import com.geotab.model.entity.group.Group;
 import com.geotab.model.entity.group.SecurityGroup;
 import com.geotab.model.entity.user.User;
-import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.GroupSearch;
+import com.geotab.sdk.Util.Arg;
+import com.geotab.sdk.Util.Cmd;
 import com.google.common.collect.Iterables;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -36,32 +37,9 @@ public class ImportUsersApp {
   private static final Logger log = LoggerFactory.getLogger(ImportUsersApp.class);
 
   public static void main(String[] args) {
-    if (args.length != 5) {
-      System.out.println("Command line parameters:");
-      System.out
-          .println("java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*'"
-              + " com.geotab.sdk.importusers.ImportUsersApp"
-              + " 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'");
-      System.out.println("server             - The server name (Example: my.geotab.com)");
-      System.out.println("database           - The database name (Example: G560)");
-      System.out.println("username           - The Geotab user name");
-      System.out.println("password           - The Geotab password");
-      System.out.println("inputFileLocation  - Location of the CSV file to import.");
-      System.exit(1);
-    }
-
     // Process command line arguments
-    String server = args[0];
-    String database = args[1];
-    String username = args[2];
-    String password = args[3];
-    String filePath = args[4];
-
-    Credentials credentials = Credentials.builder()
-        .database(database)
-        .password(password)
-        .userName(username)
-        .build();
+    Cmd cmd = new Cmd(ImportUsersApp.class, new Arg("filePath", true, "Location of the CSV file to import"));
+    String filePath = cmd.get("filePath");
 
     // load CSV
     List<UserDetails> userEntries = loadUsersFromCsv(filePath);
@@ -69,7 +47,7 @@ public class ImportUsersApp {
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(credentials, server, DEFAULT_TIMEOUT)) {
+    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);

@@ -21,10 +21,10 @@ import com.geotab.model.entity.textmessage.LocationContent;
 import com.geotab.model.entity.textmessage.TextContent;
 import com.geotab.model.entity.textmessage.TextMessage;
 import com.geotab.model.entity.user.User;
-import com.geotab.model.login.Credentials;
 import com.geotab.model.login.LoginResult;
 import com.geotab.model.search.TextMessageSearch;
 import com.geotab.model.search.UserSearch;
+import com.geotab.sdk.Util.Cmd;
 import com.google.common.collect.Lists;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -38,34 +38,13 @@ public class SendTextMessageApp {
   private static final Logger log = LoggerFactory.getLogger(SendTextMessageApp.class);
 
   public static void main(String[] args) {
-    if (args.length != 4) {
-      System.out.println("Command line parameters:");
-      System.out
-          .println("java -cp sdk-java-samples.jar com.geotab.sdk.textmessage.SendTextMessageApp "
-              + "<server> <database> <username> <password>");
-      System.out.println("server             - The server name (Example: my.geotab.com)");
-      System.out.println("database           - The database name (Example: G560)");
-      System.out.println("username           - The Geotab user name");
-      System.out.println("password           - The Geotab password");
-      System.exit(1);
-    }
-
     // Process command line arguments
-    String server = args[0];
-    String database = args[1];
-    String username = args[2];
-    String password = args[3];
-
-    Credentials credentials = Credentials.builder()
-        .database(database)
-        .password(password)
-        .userName(username)
-        .build();
+    Cmd cmd = new Cmd(SendTextMessageApp.class);
 
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(credentials, server, DEFAULT_TIMEOUT)) {
+    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);
@@ -75,7 +54,7 @@ public class SendTextMessageApp {
       log.info("Messages will be send to " + messageRecipient.getName());
 
       // Get the User who the messages will be sent from
-      User sender = getUser(api, username);
+      User sender = getUser(api, cmd.credentials.getUserName());
       log.info("Messages will be sent from {} ", sender.getName());
 
       // Sample TextMessage and reply
