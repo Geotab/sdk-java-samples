@@ -18,7 +18,7 @@ public interface Util {
       this.type = type;
       this.args.put("server", new Arg("server", false, "The server name (ex. my.geotab.com)"));
       this.args.put("database", new Arg("database", true, "The database name (ex. G560)"));
-      this.args.put("username", new Arg("username", true, "The Geotab user name (ex. user@mail.com"));
+      this.args.put("username", new Arg("username", true, "The Geotab user name (ex. user@mail.com)"));
       this.args.put("password", new Arg("password", true, "The Geotab password"));
       Stream.of(args).forEach(arg -> this.args.put(arg.name, arg));
       // Validate required arguments
