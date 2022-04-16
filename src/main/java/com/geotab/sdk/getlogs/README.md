@@ -1,6 +1,6 @@
 # Get Logs
 
- This example demonstrates how to get GPS data (LogRecord) for a given vehicle (Device).
+This example demonstrates how to get GPS data (LogRecord) for a given vehicle (Device).
 
 Steps:
 
@@ -12,7 +12,7 @@ Steps:
 
 The sample application requires:
 
-- JDK 1.8 or higher
+- JDK 11 or higher
 - Maven 3.6.*
 
 ## Getting started
@@ -20,8 +20,6 @@ The sample application requires:
 ```shell
 > git clone https://github.com/Geotab/sdk-java-samples.git sdk-java-samples
 > cd sdk-java-samples
-> mvn clean install
-> cd target/
-> WINDOWS:  java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.getlogs.GetLogsApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'G9SERIALNO'
-> LINUX:    java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar:./lib/*' com.geotab.sdk.getlogs.GetLogsApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'G9SERIALNO'
+> mvn clean verify
+> java -cp target/sdk-java-samples.jar com.geotab.sdk.getlogs.GetLogsApp
 ```

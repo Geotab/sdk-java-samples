@@ -48,7 +48,7 @@ public class CommandLineArguments {
         || !commandLine.hasOption(PASSWORD_ARG_NAME)) {
       String passedParams = String.join(" ", args);
       String cmdLineSyntax =
-          "java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.datafeed.DataFeedApp"
+          "java -cp sdk-java-samples.jar com.geotab.sdk.datafeed.DataFeedApp"
               + " --s server --d database --u user --p password --gt nnn --st nnn --ft nnn --tt nnn"
               + " --et nnn --exp csv --f file path --c";
       String header = "\n\tPassed params: " + passedParams

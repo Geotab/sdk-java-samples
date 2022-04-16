@@ -14,13 +14,10 @@ Steps:
 
 The sample application requires:
 
-- JDK 1.8 or higher
+- JDK 11 or higher
 - Maven 3.6.*
 
-
 ## CSV layout
-
-description | serial number | pipe delimited group names
 
 ```csv
 # ImportDevices.csv
@@ -36,20 +33,6 @@ Vehicle 2,GT-820-000-0002,Company Group
 ```shell
 > git clone https://github.com/Geotab/sdk-java-samples.git sdk-java-samples
 > cd sdk-java-samples
-> mvn clean install
-> cd target/
-> WINDOWS:  java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.importdevices.ImportDevicesApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'
-> LINUX:    java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar:./lib/*' com.geotab.sdk.importdevices.ImportDevicesApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'
+> mvn clean verify
+> java -cp target/sdk-java-samples.jar com.geotab.sdk.importdevices.ImportDevicesApp
 ```
-
-### Parameters
-
-`java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.importdevices.ImportDevicesApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'`
-
-| **Name** | **Description** | **Required** | 
-| --- | --- | --- |
-| server | The server name (Example: my.geotab.com) | true |
-| database | The database name (Example: G560) | true | 
-| username | The MyGeotab user name | true |
-| password | The MyGeotab password | true |
-| inputFileLocation | Location of the CSV file to import. | true |

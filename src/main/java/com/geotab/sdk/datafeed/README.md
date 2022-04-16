@@ -1,16 +1,20 @@
 # Data Feed
 
-The Data Feed is an example application that allows a third party to easily receive all the telematics data from your devices. The application can be run interactively or in the background. The application will produce easy to consume CSV files containing the key telematics data sets with updates every few seconds. Furthermore, the application can easily be updated and customized when further integration is required for example, pushing the data into a Web service, writing to a database, etc..
-
+The Data Feed is an example application that allows a third party to easily receive all the telematics data from your
+devices. The application can be run interactively or in the background. The application will produce easy to consume CSV
+files containing the key telematics data sets with updates every few seconds. Furthermore, the application can easily be
+updated and customized when further integration is required for example, pushing the data into a Web service, writing to
+a database, etc..
 
 ## Prerequisites
 
 The sample application requires:
 
-- JDK 1.8 or higher
+- JDK 11 or higher
 - Maven 3.6.*
 
-The Geotab Data Feed application connects to the MyGeotab cloud hosting services, please ensure that devices have been registered and added to the database. The following information is required:
+The Geotab Data Feed application connects to the MyGeotab cloud hosting services, please ensure that devices have been
+registered and added to the database. The following information is required:
 
 - Server (my.geotab.com)
 - Username
@@ -22,16 +26,14 @@ The Geotab Data Feed application connects to the MyGeotab cloud hosting services
 ```shell
 > git clone https://github.com/Geotab/sdk-java-samples.git sdk-java-samples
 > cd sdk-java-samples
-> mvn clean install
-> cd target/
-> WINDOWS:  java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.datafeed.DataFeedApp --s 'server' --d 'database' --u 'user' --p 'password' --gt 'nnn' --st 'nnn' --ft 'nnn' --tt 'nnn' --et 'nnn' --exp 'csv' --f 'file path' --c
-> LINUX:    java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar:./lib/*' com.geotab.sdk.datafeed.DataFeedApp --s 'server' --d 'database' --u 'user' --p 'password' --gt 'nnn' --st 'nnn' --ft 'nnn' --tt 'nnn' --et 'nnn' --exp 'csv' --f 'file path' --c
+> mvn clean verify
+> java -cp target/sdk-java-samples.jar com.geotab.sdk.datafeed.DataFeedApp --s 'server' --d 'database' --u 'user' --p 'password' --gt 'nnn' --st 'nnn' --ft 'nnn' --tt 'nnn' --et 'nnn' --exp 'csv' --f 'file path' --c
 ```
 
 The application will bring up the following console:
 
 ```shell
-> java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.datafeed.DataFeedApp --s 'server' --d 'database' --u 'user' --p 'password' --gt 'nnn' --st 'nnn' --ft 'nnn' --tt 'nnn' --et 'nnn' --exp 'csv' --f 'file path' --c
+> java -cp sdk-java-samples.jar com.geotab.sdk.datafeed.DataFeedApp --s 'server' --d 'database' --u 'user' --p 'password' --gt 'nnn' --st 'nnn' --ft 'nnn' --tt 'nnn' --et 'nnn' --exp 'csv' --f 'file path' --c
 --s  The Server
 --d  The Database
 --u  The User
@@ -49,14 +51,20 @@ The application will bring up the following console:
 Example usage:
 
 ```shell
-> java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.datafeed.DataFeedApp --s 'my.geotab.com' --d 'database' --u 'user@email.com' --p 'password' --c
+> java -cp sdk-java-samples.jar com.geotab.sdk.datafeed.DataFeedApp --s 'my.geotab.com' --d 'database' --u 'user@email.com' --p 'password' --c
 ```
 
-The options above are the inputs that the feed example can take. A server, database, user and password must be supplied in order for the feed to run. Optionally a gps data token, status data token, fault data token, trip token and/or exception token can be provided to start the feed at a particular token version ("nnn" should be replaced with the known token). Finally the feed can be instructed to run continuously or only one time.
+The options above are the inputs that the feed example can take. A server, database, user and password must be supplied
+in order for the feed to run. Optionally a gps data token, status data token, fault data token, trip token and/or
+exception token can be provided to start the feed at a particular token version ("nnn" should be replaced with the known
+token). Finally the feed can be instructed to run continuously or only one time.
 
-By default, the feed will output its results to a CSV file in the location specified by the -f flag above. If no location is provided the CSV file will be placed in the same directory where the app is located.
+By default, the feed will output its results to a CSV file in the location specified by the -f flag above. If no
+location is provided the CSV file will be placed in the same directory where the app is located.
 
-The feed example contains numerous other examples of what can be done with the feed output, for example writing the data to the console. Developers are encouraged to take a look at the examples in order to understand how the options available to them and how to best to integrate the feed data into their existing systems.
+The feed example contains numerous other examples of what can be done with the feed output, for example writing the data
+to the console. Developers are encouraged to take a look at the examples in order to understand how the options
+available to them and how to best to integrate the feed data into their existing systems.
 
 ## Feed output
 
@@ -178,4 +186,9 @@ The feed example contains numerous other examples of what can be done with the f
 
 ## Customization
 
-The feed has been designed in such a way that the data returned from the feed can be processed in a completely customized manner. Within the DataFeedApp.java file is the feed executable as described above. It delegates the processing to the DataFeedWorker.java, which loads the data of a feed and outputs the results. By default the ConsoleExporter.java class is used to write the feed results to the console, however the developer can change this method to customize the format of the output results to CSV. In this manner the developer can easily integrate the feed with existing systems.
+The feed has been designed in such a way that the data returned from the feed can be processed in a completely
+customized manner. Within the DataFeedApp.java file is the feed executable as described above. It delegates the
+processing to the DataFeedWorker.java, which loads the data of a feed and outputs the results. By default the
+ConsoleExporter.java class is used to write the feed results to the console, however the developer can change this
+method to customize the format of the output results to CSV. In this manner the developer can easily integrate the feed
+with existing systems.

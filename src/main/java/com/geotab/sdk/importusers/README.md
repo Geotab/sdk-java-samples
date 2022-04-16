@@ -17,7 +17,7 @@ Steps:
 
 The sample application requires:
 
-- JDK 1.8 or higher
+- JDK 11 or higher
 - Maven 3.6.*
 
 ## CSV layout
@@ -39,8 +39,6 @@ BasicUser@company.com,5bJknaJPKJSKP62Z,Entire Organization,Administrator,Basic,U
 ```shell
 > git clone https://github.com/Geotab/sdk-java-samples.git sdk-java-samples
 > cd sdk-java-samples
-> mvn clean install
-> cd target/
-> WINDOWS:  java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar;./lib/*' com.geotab.sdk.importusers.ImportUsersApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'
-> LINUX:    java -cp 'sdk-java-samples-1.0-SNAPSHOT.jar:./lib/*' com.geotab.sdk.importusers.ImportUsersApp 'my.geotab.com' 'database' 'user@email.com' 'password' 'inputFileLocation'
+> mvn clean verify
+> java -cp target/sdk-java-samples.jar com.geotab.sdk.importusers.ImportUsersApp
 ```
