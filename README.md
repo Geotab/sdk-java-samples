@@ -25,6 +25,10 @@ Then build the samples jar and execute the main class you need:
 
 An example that obtains the logs for a given vehicle between a range of dates.
 
+### Get Count
+
+An example that obtains the count of entities. Enter the entity name (e.g. User, Zone, Device, etc) to get the count-of result.
+
 ### Text Message
 
 An example that sends text messages to and from a GO device.
