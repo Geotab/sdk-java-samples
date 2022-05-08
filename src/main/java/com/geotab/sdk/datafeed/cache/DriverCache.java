@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.UserListResponse;
@@ -22,7 +22,7 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
 
   private static final Logger log = LoggerFactory.getLogger(DriverCache.class);
 
-  public DriverCache(GeotabApi api) {
+  public DriverCache(Api api) {
     super(api, NoDriver.getInstance());
   }
 

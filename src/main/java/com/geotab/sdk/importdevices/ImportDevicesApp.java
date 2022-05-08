@@ -3,6 +3,7 @@ package com.geotab.sdk.importdevices;
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 import static java.util.Optional.ofNullable;
 
+import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
@@ -49,7 +50,7 @@ public class ImportDevicesApp {
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);
@@ -92,7 +93,7 @@ public class ImportDevicesApp {
     return new ArrayList<>();
   }
 
-  private static LoginResult authenticate(GeotabApi api) {
+  private static LoginResult authenticate(Api api) {
     log.debug("Authenticating ...");
 
     LoginResult loginResult = null;
@@ -115,7 +116,7 @@ public class ImportDevicesApp {
     return loginResult;
   }
 
-  private static User getApiUser(GeotabApi api, String username) {
+  private static User getApiUser(Api api, String username) {
     log.debug("Getting user {} ...", username);
 
     User apiUser = null;
@@ -145,7 +146,7 @@ public class ImportDevicesApp {
     return apiUser;
   }
 
-  private static void importDevices(GeotabApi api, User apiUser,
+  private static void importDevices(Api api, User apiUser,
       List<CsvDeviceEntry> deviceEntries) {
     log.debug("Start importing devices ...");
 
@@ -251,7 +252,7 @@ public class ImportDevicesApp {
 
   }
 
-  private static List<Device> getExistingDevices(GeotabApi api) {
+  private static List<Device> getExistingDevices(Api api) {
     log.debug("Get existing devices ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -270,7 +271,7 @@ public class ImportDevicesApp {
     return new ArrayList<>();
   }
 
-  private static List<Group> getExistingGroups(GeotabApi api) {
+  private static List<Group> getExistingGroups(Api api) {
     log.debug("Get existing groups ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()

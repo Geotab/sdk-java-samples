@@ -7,6 +7,7 @@ import static java.lang.System.out;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+import com.geotab.api.Api;
 import com.geotab.api.Api.MultiCallBuilder;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.request.param.SearchParameters;
@@ -37,7 +38,7 @@ public class GetLogsApp {
     Cmd cmd = new Cmd(GetLogsApp.class, new Arg("serialNumber", false, "Serial number of the device"));
     String serialNumber = cmd.get("serialNumber");
 
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
       // Get all devices or, if SN is available, only one device by serial number
       List<Device> devices = api.callGet(SearchParameters.searchParamsBuilder()
           .resultsLimit(10).typeName("Device")

@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.DeviceListResponse;
@@ -19,7 +19,7 @@ public final class DeviceCache extends GeotabEntityCache<Device> {
 
   private static final Logger log = LoggerFactory.getLogger(DeviceCache.class);
 
-  public DeviceCache(GeotabApi api) {
+  public DeviceCache(Api api) {
     super(api, NoDevice.getInstance());
   }
 

@@ -2,6 +2,7 @@ package com.geotab.sdk.importgroups;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 
+import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
@@ -41,7 +42,7 @@ public class ImportGroupsApp {
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);
@@ -79,7 +80,7 @@ public class ImportGroupsApp {
     return new ArrayList<>();
   }
 
-  private static LoginResult authenticate(GeotabApi api) {
+  private static LoginResult authenticate(Api api) {
     log.debug("Authenticating ...");
 
     LoginResult loginResult = null;
@@ -102,7 +103,7 @@ public class ImportGroupsApp {
     return loginResult;
   }
 
-  private static void importGroups(GeotabApi api, List<CsvGroupEntry> groupEntries) {
+  private static void importGroups(Api api, List<CsvGroupEntry> groupEntries) {
     log.debug("Start importing groups ...");
 
     try {
@@ -197,7 +198,7 @@ public class ImportGroupsApp {
 
   }
 
-  private static List<Group> getExistingGroups(GeotabApi api) {
+  private static List<Group> getExistingGroups(Api api) {
     log.debug("Get existing groups ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()

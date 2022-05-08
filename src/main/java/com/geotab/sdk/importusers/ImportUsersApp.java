@@ -3,6 +3,7 @@ package com.geotab.sdk.importusers;
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 import static com.geotab.model.entity.user.UserAuthenticationType.BASIC_AUTHENTICATION;
 
+import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
@@ -47,7 +48,7 @@ public class ImportUsersApp {
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);
@@ -110,7 +111,7 @@ public class ImportUsersApp {
     return new ArrayList<>();
   }
 
-  private static LoginResult authenticate(GeotabApi api) {
+  private static LoginResult authenticate(Api api) {
     log.debug("Authenticating ...");
 
     LoginResult loginResult = null;
@@ -133,7 +134,7 @@ public class ImportUsersApp {
     return loginResult;
   }
 
-  private static void importUsers(GeotabApi api, List<UserDetails> userEntries) {
+  private static void importUsers(Api api, List<UserDetails> userEntries) {
     log.debug("Start importing users ...");
 
     try {
@@ -183,7 +184,7 @@ public class ImportUsersApp {
 
   }
 
-  private static List<User> getExistingUsers(GeotabApi api) {
+  private static List<User> getExistingUsers(Api api) {
     log.debug("Get existing users ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -202,7 +203,7 @@ public class ImportUsersApp {
     return new ArrayList<>();
   }
 
-  private static List<Group> getExistingGroups(GeotabApi api) {
+  private static List<Group> getExistingGroups(Api api) {
     log.debug("Get existing groups ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -221,7 +222,7 @@ public class ImportUsersApp {
     return new ArrayList<>();
   }
 
-  private static List<Group> getSecurityGroups(GeotabApi api) {
+  private static List<Group> getSecurityGroups(Api api) {
     log.debug("Get security groups ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()

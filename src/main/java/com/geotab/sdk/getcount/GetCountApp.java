@@ -3,6 +3,7 @@ package com.geotab.sdk.getcount;
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 import static java.lang.System.out;
 
+import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
@@ -20,7 +21,7 @@ public class GetCountApp {
   public static void main(String[] args) {
     Cmd cmd = new Cmd(GetCountApp.class);
 
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
       Scanner scan = new Scanner(System.in);
       while (true) {
         out.println();

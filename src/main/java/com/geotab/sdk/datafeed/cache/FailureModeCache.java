@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.FailureModeListResponse;
@@ -19,7 +19,7 @@ public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
 
   private static final Logger log = LoggerFactory.getLogger(FailureModeCache.class);
 
-  public FailureModeCache(GeotabApi api) {
+  public FailureModeCache(Api api) {
     super(api, NoFailureMode.getInstance());
   }
 

@@ -3,6 +3,7 @@ package com.geotab.sdk.textmessage;
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 
+import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
@@ -44,7 +45,7 @@ public class SendTextMessageApp {
     // Create the Geotab API object used to make calls to the server
     // Note: server name should be the generic server as DBs can be moved without notice.
     // For example; use "my.geotab.com" rather than "my3.geotab.com".
-    try (GeotabApi api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
       authenticate(api);
@@ -65,7 +66,7 @@ public class SendTextMessageApp {
     }
   }
 
-  private static LoginResult authenticate(GeotabApi api) {
+  private static LoginResult authenticate(Api api) {
     log.debug("Authenticating ...");
 
     LoginResult loginResult = null;
@@ -88,7 +89,7 @@ public class SendTextMessageApp {
     return loginResult;
   }
 
-  private static Device getTargetDevice(GeotabApi api) {
+  private static Device getTargetDevice(Api api) {
     log.debug("Get 1 device ...");
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -114,7 +115,7 @@ public class SendTextMessageApp {
     return null;
   }
 
-  private static User getUser(GeotabApi api, String userName) {
+  private static User getUser(Api api, String userName) {
     log.debug("Get user {} ...", userName);
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -143,7 +144,7 @@ public class SendTextMessageApp {
     return null;
   }
 
-  private static List<TextMessage> getTextMessages(GeotabApi api, LocalDateTime modifiedSince) {
+  private static List<TextMessage> getTextMessages(Api api, LocalDateTime modifiedSince) {
     log.debug("Get TextMessages after {} ...", modifiedSince);
     try {
       AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
@@ -165,7 +166,7 @@ public class SendTextMessageApp {
     return new ArrayList<>();
   }
 
-  private static void sendBasicMessageAndMockDeviceReply(GeotabApi api, User sender,
+  private static void sendBasicMessageAndMockDeviceReply(Api api, User sender,
       Device messageRecipient) {
     /*
      * Basic Message
@@ -314,7 +315,7 @@ public class SendTextMessageApp {
     log.info("{} TextMessages delivered/sent/read", textMessages.size());
   }
 
-  private static void sendMessageWithGpsLocation(GeotabApi api, User sender,
+  private static void sendMessageWithGpsLocation(Api api, User sender,
       Device messageRecipient) {
     LocalDateTime lastKnownSentDate = nowUtcLocalDateTime();
 

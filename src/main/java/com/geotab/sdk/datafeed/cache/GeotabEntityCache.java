@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.model.entity.Entity;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -16,11 +16,11 @@ public abstract class GeotabEntityCache<T extends Entity> {
 
   protected LoadingCache<String, T> cache;
 
-  protected GeotabApi api;
+  protected Api api;
 
   protected T noEntity;
 
-  protected GeotabEntityCache(GeotabApi api, T noEntity) {
+  protected GeotabEntityCache(Api api, T noEntity) {
     this.api = api;
     this.noEntity = noEntity;
     this.cache = CacheBuilder.newBuilder()

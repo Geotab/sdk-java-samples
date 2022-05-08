@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.ControllerListResponse;
@@ -19,7 +19,7 @@ public final class ControllerCache extends GeotabEntityCache<Controller> {
 
   private static final Logger log = LoggerFactory.getLogger(ControllerCache.class);
 
-  public ControllerCache(GeotabApi api) {
+  public ControllerCache(Api api) {
     super(api, NoController.getInstance());
   }
 

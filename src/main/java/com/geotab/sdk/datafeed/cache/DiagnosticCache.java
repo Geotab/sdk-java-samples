@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.DiagnosticListResponse;
@@ -23,7 +23,7 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   private UnitOfMeasureCache unitOfMeasureCache;
 
   public DiagnosticCache(
-      GeotabApi api,
+      Api api,
       ControllerCache controllerCache,
       UnitOfMeasureCache unitOfMeasureCache
   ) {

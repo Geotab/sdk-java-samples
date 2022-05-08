@@ -1,6 +1,6 @@
 package com.geotab.sdk.datafeed.cache;
 
-import com.geotab.api.GeotabApi;
+import com.geotab.api.Api;
 import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.http.response.UnitOfMeasureListResponse;
@@ -21,7 +21,7 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
 
   private static final Logger log = LoggerFactory.getLogger(UnitOfMeasureCache.class);
 
-  public UnitOfMeasureCache(GeotabApi api) {
+  public UnitOfMeasureCache(Api api) {
     super(api, UnitOfMeasureNone.getInstance());
   }
 
