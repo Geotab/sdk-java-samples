@@ -7,13 +7,8 @@ import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.EntityParameters;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.DeviceListResponse;
-import com.geotab.http.response.IdResponse;
-import com.geotab.http.response.TextMessageListResponse;
-import com.geotab.http.response.UserListResponse;
 import com.geotab.model.Id;
 import com.geotab.model.entity.device.Device;
 import com.geotab.model.entity.textmessage.CannedResponseContent;
@@ -38,7 +33,7 @@ public class SendTextMessageApp {
 
   private static final Logger log = LoggerFactory.getLogger(SendTextMessageApp.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     // Process command line arguments
     Cmd cmd = new Cmd(SendTextMessageApp.class);
 
@@ -67,7 +62,7 @@ public class SendTextMessageApp {
   }
 
   private static LoginResult authenticate(Api api) {
-    log.debug("Authenticating ...");
+    log.debug("Authenticating…");
 
     LoginResult loginResult = null;
 
@@ -90,17 +85,10 @@ public class SendTextMessageApp {
   }
 
   private static Device getTargetDevice(Api api) {
-    log.debug("Get 1 device ...");
+    log.debug("Get 1 device…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Device")
-              .resultsLimit(1)
-              .build())
-          .build();
-
-      Optional<List<Device>> devices = api.call(request, DeviceListResponse.class);
+      Optional<List<Device>> devices = api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("Device").resultsLimit(1).build(), Device.class);
       if (devices.isPresent() && !devices.get().isEmpty()) {
         return devices.get().get(0);
       }
@@ -116,19 +104,10 @@ public class SendTextMessageApp {
   }
 
   private static User getUser(Api api, String userName) {
-    log.debug("Get user {} ...", userName);
+    log.debug("Get user {}…", userName);
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("User")
-              .search(UserSearch.builder()
-                  .name(userName)
-                  .build())
-              .build())
-          .build();
-
-      Optional<List<? extends User>> users = api.call(request, UserListResponse.class);
+      Optional<List<User>> users = api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("User").search(UserSearch.builder().name(userName).build()).build(), User.class);
 
       if (users.isPresent() && !users.get().isEmpty()) {
         return users.get().get(0);
@@ -145,19 +124,11 @@ public class SendTextMessageApp {
   }
 
   private static List<TextMessage> getTextMessages(Api api, LocalDateTime modifiedSince) {
-    log.debug("Get TextMessages after {} ...", modifiedSince);
+    log.debug("Get TextMessages after {}…", modifiedSince);
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("TextMessage")
-              .search(TextMessageSearch.builder()
-                  .modifiedSinceDate(modifiedSince)
-                  .build())
-              .build())
-          .build();
-
-      return api.call(request, TextMessageListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder().typeName("TextMessage")
+              .search(TextMessageSearch.builder().modifiedSinceDate(modifiedSince).build()).build(), TextMessage.class)
+          .orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get TextMessages after {} ", modifiedSince, exception);
       System.exit(1);
@@ -190,15 +161,8 @@ public class SendTextMessageApp {
 
     // Add the text message. MyGeotab will take care of the actual sending.
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Add")
-          .params(EntityParameters.entityParamsBuilder()
-              .typeName("TextMessage")
-              .entity(basicTextMessage)
-              .build())
-          .build();
-
-      Optional<Id> response = api.call(request, IdResponse.class);
+      Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+          .typeName("TextMessage").entity(basicTextMessage).build());
 
       if (response.isPresent()) {
         log.info("Basic TextMessage added with id {} .", response.get().getId());
@@ -235,15 +199,8 @@ public class SendTextMessageApp {
 
     // Add the text message, Geotab will take care of the sending process.
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Add")
-          .params(EntityParameters.entityParamsBuilder()
-              .typeName("TextMessage")
-              .entity(textMessageWithResponses)
-              .build())
-          .build();
-
-      Optional<Id> response = api.call(request, IdResponse.class);
+      Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+          .typeName("TextMessage").entity(textMessageWithResponses).build());
 
       if (response.isPresent()) {
         log.info("Canned TextMessage added with id {} .", response.get().getId());
@@ -285,15 +242,8 @@ public class SendTextMessageApp {
         .build();
 
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Add")
-          .params(EntityParameters.entityParamsBuilder()
-              .typeName("TextMessage")
-              .entity(textMessageFromDevice)
-              .build())
-          .build();
-
-      Optional<Id> response = api.call(request, IdResponse.class);
+      Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+          .typeName("TextMessage").entity(textMessageFromDevice).build());
 
       if (response.isPresent()) {
         log.info("Response TextMessage added with id {} .", response.get().getId());
@@ -346,15 +296,8 @@ public class SendTextMessageApp {
 
     // Add the clear stops text message, Geotab will take care of the sending process.
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Add")
-          .params(EntityParameters.entityParamsBuilder()
-              .typeName("TextMessage")
-              .entity(clearMessage)
-              .build())
-          .build();
-
-      Optional<Id> response = api.call(request, IdResponse.class);
+      Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+          .typeName("TextMessage").entity(clearMessage).build());
 
       if (response.isPresent()) {
         log.info("Clear Stop TextMessage added with id {} .", response.get().getId());
@@ -385,15 +328,8 @@ public class SendTextMessageApp {
 
     // Add the clear stops text message, Geotab will take care of the sending process.
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Add")
-          .params(EntityParameters.entityParamsBuilder()
-              .typeName("TextMessage")
-              .entity(locationMessage)
-              .build())
-          .build();
-
-      Optional<Id> response = api.call(request, IdResponse.class);
+      Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+          .typeName("TextMessage").entity(locationMessage).build());
 
       if (response.isPresent()) {
         log.info("Location TextMessage added with id {} .", response.get().getId());

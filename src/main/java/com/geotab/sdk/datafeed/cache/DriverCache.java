@@ -1,9 +1,7 @@
 package com.geotab.sdk.datafeed.cache;
 
 import com.geotab.api.Api;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.UserListResponse;
 import com.geotab.model.entity.user.Driver;
 import com.geotab.model.entity.user.NoDriver;
 import com.geotab.model.entity.user.UnknownDriver;
@@ -33,22 +31,9 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
 
   @Override
   protected Optional<Driver> fetchEntity(String id) {
-    log.debug("Loading Driver by id {} from Geotab ...", id);
-
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .search(
-                UserSearch.builder()
-                    .id(id)
-                    .isDriver(true)
-                    .build()
-            )
-            .typeName("User")
-            .build())
-        .build();
-
-    Optional<List<? extends User>> drivers = api.call(request, UserListResponse.class);
+    log.debug("Loading Driver by id {} from Geotab…", id);
+    Optional<List<User>> drivers = api.callGet(SearchParameters.searchParamsBuilder()
+        .search(UserSearch.builder().id(id).isDriver(true).build()).typeName("User").build(), User.class);
 
     if (drivers.isPresent() && !drivers.get().isEmpty()) {
       log.debug("Driver by id {} loaded from Geotab.", id);
@@ -60,25 +45,11 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
 
   @Override
   protected Optional<List<Driver>> fetchAll() {
-    log.debug("Loading all Drivers from Geotab ...");
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .search(
-                UserSearch.builder()
-                    .isDriver(true)
-                    .build()
-            )
-            .typeName("User")
-            .build())
-        .build();
+    log.debug("Loading all Drivers from Geotab…");
+    Optional<List<User>> drivers = api.callGet(SearchParameters.searchParamsBuilder()
+        .search(UserSearch.builder().isDriver(true).build()).typeName("User").build(), User.class);
 
-    Optional<List<? extends User>> drivers = api.call(request, UserListResponse.class);
-
-    return drivers.map(
-        users -> users.stream()
-            .map(Driver.class::cast)
-            .collect(Collectors.toList())
+    return drivers.map(users -> users.stream().map(Driver.class::cast).collect(Collectors.toList())
     );
   }
 

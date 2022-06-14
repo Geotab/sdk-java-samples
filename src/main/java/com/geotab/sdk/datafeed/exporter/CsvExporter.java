@@ -81,7 +81,7 @@ public class CsvExporter implements Exporter {
   }
 
   private void exportLogRecords(List<LogRecord> logRecords) throws Exception {
-    log.debug("Exporting LogRecords to csv ...");
+    log.debug("Exporting LogRecords to csv…");
 
     String csvFile = generateCsv(
         GPS_FILE_NAME_PREFIX,
@@ -93,7 +93,7 @@ public class CsvExporter implements Exporter {
   }
 
   private void exportStatusData(List<StatusData> statusData) throws Exception {
-    log.debug("Exporting StatusData to csv ...");
+    log.debug("Exporting StatusData to csv…");
 
     String csvFile = generateCsv(
         STATUS_DATA_FILE_NAME_PREFIX,
@@ -105,7 +105,7 @@ public class CsvExporter implements Exporter {
   }
 
   private void exportFaultData(List<FaultData> faultData) throws Exception {
-    log.debug("Exporting FaultData to csv ...");
+    log.debug("Exporting FaultData to csv…");
 
     String csvFile = generateCsv(
         FAULT_DATA_FILE_NAME_PREFIX,
@@ -117,7 +117,7 @@ public class CsvExporter implements Exporter {
   }
 
   private void exportTrips(List<Trip> trips) throws Exception {
-    log.debug("Exporting Trips to csv ...");
+    log.debug("Exporting Trips to csv…");
 
     String csvFile = generateCsv(
         TRIP_FILE_NAME_PREFIX,

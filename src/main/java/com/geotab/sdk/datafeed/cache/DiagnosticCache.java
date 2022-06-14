@@ -1,9 +1,7 @@
 package com.geotab.sdk.datafeed.cache;
 
 import com.geotab.api.Api;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.DiagnosticListResponse;
 import com.geotab.model.entity.diagnostic.BasicDiagnostic;
 import com.geotab.model.entity.diagnostic.Diagnostic;
 import com.geotab.model.entity.diagnostic.NoDiagnostic;
@@ -39,17 +37,9 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
 
   @Override
   protected Optional<Diagnostic> fetchEntity(String id) {
-    log.debug("Loading Diagnostic by id {} from Geotab ...", id);
-
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .search(new IdSearch(id))
-            .typeName("Diagnostic")
-            .build())
-        .build();
-
-    Optional<List<Diagnostic>> diagnostics = api.call(request, DiagnosticListResponse.class);
+    log.debug("Loading Diagnostic by id {} from Geotab…", id);
+    Optional<List<Diagnostic>> diagnostics = api.callGet(SearchParameters.searchParamsBuilder()
+        .search(new IdSearch(id)).typeName("Diagnostic").build(), Diagnostic.class);
 
     if (diagnostics.isPresent() && !diagnostics.get().isEmpty()) {
       log.debug("Diagnostic by id {} loaded from Geotab.", id);
@@ -61,15 +51,8 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
 
   @Override
   protected Optional<List<Diagnostic>> fetchAll() {
-    log.debug("Loading all Diagnostic from Geotab ...");
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .typeName("Diagnostic")
-            .build())
-        .build();
-
-    return api.call(request, DiagnosticListResponse.class);
+    log.debug("Loading all Diagnostic from Geotab…");
+    return api.callGet(SearchParameters.searchParamsBuilder().typeName("Diagnostic").build(), Diagnostic.class);
   }
 
   @Override

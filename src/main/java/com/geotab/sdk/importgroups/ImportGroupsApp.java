@@ -31,7 +31,7 @@ public class ImportGroupsApp {
 
   private static final Logger log = LoggerFactory.getLogger(ImportGroupsApp.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     // Process command line arguments
     Cmd cmd = new Cmd(ImportGroupsApp.class, new Arg("filePath", true, "Location of the CSV file to import"));
     String filePath = cmd.get("filePath");
@@ -59,7 +59,7 @@ public class ImportGroupsApp {
    * @return A collection of {@link CsvGroupEntry}.
    */
   private static List<CsvGroupEntry> loadGroupsFromCsv(String filePath) {
-    log.debug("Loading CSV {} ...", filePath);
+    log.debug("Loading CSV {}…", filePath);
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
       return rows
@@ -81,7 +81,7 @@ public class ImportGroupsApp {
   }
 
   private static LoginResult authenticate(Api api) {
-    log.debug("Authenticating ...");
+    log.debug("Authenticating…");
 
     LoginResult loginResult = null;
 
@@ -104,7 +104,7 @@ public class ImportGroupsApp {
   }
 
   private static void importGroups(Api api, List<CsvGroupEntry> groupEntries) {
-    log.debug("Start importing groups ...");
+    log.debug("Start importing groups…");
 
     try {
       List<Group> existingGroups = getExistingGroups(api);
@@ -167,15 +167,8 @@ public class ImportGroupsApp {
               .build();
 
           // Add the group.
-          AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-              .method("Add")
-              .params(EntityParameters.entityParamsBuilder()
-                  .typeName("Group")
-                  .entity(newGroup)
-                  .build())
-              .build();
-
-          Optional<Id> response = api.call(request, IdResponse.class);
+          Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+              .typeName("Group").entity(newGroup).build());
 
           if (response.isPresent()) {
             log.info("Group {} added with id {} .",
@@ -199,18 +192,12 @@ public class ImportGroupsApp {
   }
 
   private static List<Group> getExistingGroups(Api api) {
-    log.debug("Get existing groups ...");
+    log.debug("Get existing groups…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Group")
-              .build())
-          .build();
-
-      return api.call(request, GroupListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("Group").build(), Group.class).orElse(new ArrayList<>());
     } catch (Exception exception) {
-      log.error("Failed to get existing groups ", exception);
+      log.error("Failed to get existing groups", exception);
       System.exit(1);
     }
 

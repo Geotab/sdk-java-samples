@@ -1,9 +1,7 @@
 package com.geotab.sdk.datafeed.cache;
 
 import com.geotab.api.Api;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.UnitOfMeasureListResponse;
 import com.geotab.model.Id;
 import com.geotab.model.entity.unitofmeasure.UnitOfMeasure;
 import com.geotab.model.entity.unitofmeasure.UnitOfMeasureNone;
@@ -14,8 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * {@link UnitOfMeasure} cache singleton. Reloads controllers periodically on demand and caches
- * them.
+ * {@link UnitOfMeasure} cache singleton. Reloads controllers periodically on demand and caches them.
  */
 public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
 
@@ -32,18 +29,9 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
 
   @Override
   protected Optional<UnitOfMeasure> fetchEntity(String id) {
-    log.debug("Loading UnitOfMeasure by id {} from Geotab ...", id);
-
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .search(new IdSearch(id))
-            .typeName("UnitOfMeasure")
-            .build())
-        .build();
-
-    Optional<List<UnitOfMeasure>> unitOfMeasures = api
-        .call(request, UnitOfMeasureListResponse.class);
+    log.debug("Loading UnitOfMeasure by id {} from Geotab…", id);
+    Optional<List<UnitOfMeasure>> unitOfMeasures = api.callGet(SearchParameters.searchParamsBuilder()
+        .search(new IdSearch(id)).typeName("UnitOfMeasure").build(), UnitOfMeasure.class);
 
     if (unitOfMeasures.isPresent() && !unitOfMeasures.get().isEmpty()) {
       log.debug("UnitOfMeasure by id {} loaded from Geotab.", id);
@@ -55,15 +43,8 @@ public final class UnitOfMeasureCache extends GeotabEntityCache<UnitOfMeasure> {
 
   @Override
   protected Optional<List<UnitOfMeasure>> fetchAll() {
-    log.debug("Loading all UnitOfMeasures from Geotab ...");
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("Get")
-        .params(SearchParameters.searchParamsBuilder()
-            .typeName("UnitOfMeasure")
-            .build())
-        .build();
-
-    return api.call(request, UnitOfMeasureListResponse.class);
+    log.debug("Loading all UnitOfMeasures from Geotab…");
+    return api.callGet(SearchParameters.searchParamsBuilder().typeName("UnitOfMeasure").build(), UnitOfMeasure.class);
   }
 
   @Override

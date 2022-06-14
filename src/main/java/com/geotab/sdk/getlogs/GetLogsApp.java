@@ -1,6 +1,7 @@
 package com.geotab.sdk.getlogs;
 
 import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.http.request.param.SearchParameters.searchParamsBuilder;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.out;
@@ -19,6 +20,7 @@ import com.geotab.sdk.Util.Arg;
 import com.geotab.sdk.Util.Cmd;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -34,13 +36,13 @@ import java.util.function.Supplier;
  */
 public class GetLogsApp {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     Cmd cmd = new Cmd(GetLogsApp.class, new Arg("serialNumber", false, "Serial number of the device"));
     String serialNumber = cmd.get("serialNumber");
 
     try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
       // Get all devices or, if SN is available, only one device by serial number
-      List<Device> devices = api.callGet(SearchParameters.searchParamsBuilder()
+      List<Device> devices = api.callGet(searchParamsBuilder()
           .resultsLimit(10).typeName("Device")
           .search(isNullOrEmpty(serialNumber) ? null : DeviceSearch.builder().serialNumber(serialNumber).build())
           .build(), Device.class).orElse(Collections.emptyList());
@@ -48,12 +50,13 @@ public class GetLogsApp {
       // Get logs for all (or one SN) devices
       LocalDateTime toDate = nowUtcLocalDateTime();
       LocalDateTime fromDate = toDate.minusDays(7);
-      MultiCallBuilder multiCall = api.buildMultiCall();
-      Map<Device, Supplier<List<LogRecord>>> result = devices.stream()
-          .collect(toMap(identity(), o -> multiCall.callGet(SearchParameters.searchParamsBuilder().typeName("LogRecord")
-              .search(LogRecordSearch.builder().deviceSearch(o.getId()).fromDate(fromDate).toDate(toDate).build())
-              .build(), LogRecord.class)));
-      multiCall.execute(); // if succeeds, each supplier will contain the corresponding result
+      MultiCallBuilder call = api.buildMultiCall();
+      Map<Device, Supplier<List<LogRecord>>> result = new HashMap<>();
+      for (Device d : devices) {
+        var query = LogRecordSearch.builder().deviceSearch(d.getId()).fromDate(fromDate).toDate(toDate).build();
+        result.put(d, call.callGet(searchParamsBuilder().typeName("LogRecord").search(query).build(), LogRecord.class));
+      }
+      call.execute(); // if succeeds, each supplier will contain the corresponding result
 
       // Print last week coordinates for each device
       result.forEach((device, logs) -> {

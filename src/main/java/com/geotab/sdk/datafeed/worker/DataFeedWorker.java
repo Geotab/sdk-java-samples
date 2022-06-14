@@ -28,7 +28,7 @@ public class DataFeedWorker extends Thread {
 
   @Override
   public void run() {
-    log.debug("Running ...");
+    log.debug("Running…");
 
     try {
       isProccessing.set(true);
@@ -50,7 +50,7 @@ public class DataFeedWorker extends Thread {
   }
 
   public void shutdown() {
-    log.debug("Signal to stop processing ...");
+    log.debug("Signal to stop processing…");
     isAlive.set(false);
   }
 

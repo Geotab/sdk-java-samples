@@ -7,13 +7,8 @@ import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.EntityParameters;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.DeviceListResponse;
-import com.geotab.http.response.GroupListResponse;
-import com.geotab.http.response.IdResponse;
-import com.geotab.http.response.UserListResponse;
 import com.geotab.model.Id;
 import com.geotab.model.entity.device.Device;
 import com.geotab.model.entity.group.CompanyGroup;
@@ -39,7 +34,7 @@ public class ImportDevicesApp {
 
   private static final Logger log = LoggerFactory.getLogger(ImportDevicesApp.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     // Process command line arguments
     Cmd cmd = new Cmd(ImportDevicesApp.class, new Arg("filePath", true, "Location of the CSV file to import"));
     String filePath = cmd.get("filePath");
@@ -70,7 +65,7 @@ public class ImportDevicesApp {
    * @return A collection of {@link CsvDeviceEntry}.
    */
   private static List<CsvDeviceEntry> loadDevicesFromCsv(String filePath) {
-    log.debug("Loading CSV {} ...", filePath);
+    log.debug("Loading CSV {}…", filePath);
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
       return rows
@@ -94,7 +89,7 @@ public class ImportDevicesApp {
   }
 
   private static LoginResult authenticate(Api api) {
-    log.debug("Authenticating ...");
+    log.debug("Authenticating…");
 
     LoginResult loginResult = null;
 
@@ -117,22 +112,12 @@ public class ImportDevicesApp {
   }
 
   private static User getApiUser(Api api, String username) {
-    log.debug("Getting user {} ...", username);
+    log.debug("Getting user {}…", username);
 
     User apiUser = null;
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .search(UserSearch.builder()
-                  .name(username)
-                  .build())
-              .typeName("User")
-              .resultsLimit(1)
-              .build())
-          .build();
-
-      Optional<List<? extends User>> users = api.call(request, UserListResponse.class);
+      Optional<List<User>> users = api.callGet(SearchParameters.searchParamsBuilder()
+          .search(UserSearch.builder().name(username).build()).typeName("User").resultsLimit(1).build(), User.class);
       if (!users.isPresent() || users.get().isEmpty()) {
         log.error("User {} not found", username);
         System.exit(1);
@@ -148,7 +133,7 @@ public class ImportDevicesApp {
 
   private static void importDevices(Api api, User apiUser,
       List<CsvDeviceEntry> deviceEntries) {
-    log.debug("Start importing devices ...");
+    log.debug("Start importing devices…");
 
     try {
       List<Device> existingDevices = getExistingDevices(api);
@@ -220,16 +205,9 @@ public class ImportDevicesApp {
           newDevice.setGroups(deviceGroups);
           newDevice.setWorkTime(new WorkTimeStandardHours());
 
-          // Add the device.
-          AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-              .method("Add")
-              .params(EntityParameters.entityParamsBuilder()
-                  .typeName("Device")
-                  .entity(newDevice)
-                  .build())
-              .build();
-
-          Optional<Id> response = api.call(request, IdResponse.class);
+          // Add the device
+          Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+              .typeName("Device").entity(newDevice).build());
 
           if (response.isPresent()) {
             log.info("Device {} added with id {} .",
@@ -249,20 +227,13 @@ public class ImportDevicesApp {
       log.error("Failed to get import devices", exception);
       System.exit(1);
     }
-
   }
 
   private static List<Device> getExistingDevices(Api api) {
-    log.debug("Get existing devices ...");
+    log.debug("Get existing devices…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Device")
-              .build())
-          .build();
-
-      return api.call(request, DeviceListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("Device").build(), Device.class).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing devices ", exception);
       System.exit(1);
@@ -272,16 +243,10 @@ public class ImportDevicesApp {
   }
 
   private static List<Group> getExistingGroups(Api api) {
-    log.debug("Get existing groups ...");
+    log.debug("Get existing groups…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Group")
-              .build())
-          .build();
-
-      return api.call(request, GroupListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("Group").build(), Group.class).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing groups ", exception);
       System.exit(1);

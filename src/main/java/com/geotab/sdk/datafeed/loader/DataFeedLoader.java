@@ -4,7 +4,6 @@ import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.OverLimitException;
 import com.geotab.http.invoker.ServerInvoker;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.GetFeedParameters;
 import com.geotab.http.response.GetFeedFaultDataResponse;
 import com.geotab.http.response.GetFeedLogRecordResponse;
@@ -37,12 +36,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DataFeedLoader {
 
-  private static final Map<Class<?>, Class<?>> FEED_RESULT_TYPE = ImmutableMap.<Class<?>, Class<?>>builder()
-      .put(LogRecord.class, GetFeedLogRecordResponse.class)
-      .put(StatusData.class, GetFeedStatusDataResponse.class)
-      .put(FaultData.class, GetFeedFaultDataResponse.class)
-      .put(Trip.class, GetFeedTripResponse.class)
-      .build();
   private static final Logger log = LoggerFactory.getLogger(DataFeedLoader.class);
 
   private GeotabApi geotabApi;
@@ -63,8 +56,7 @@ public class DataFeedLoader {
 
   private LocalDateTime cacheReloadTime;
 
-  public DataFeedLoader(String serverUrl, Credentials credentials,
-      DataFeedParameters feedParameters) {
+  public DataFeedLoader(String serverUrl, Credentials credentials, DataFeedParameters feedParameters) {
     this.geotabApi = new GeotabApi(credentials, serverUrl, ServerInvoker.DEFAULT_TIMEOUT);
     this.dataFeedParameters = feedParameters;
     this.cacheReloadTime = LocalDateTime.now().minusMinutes(1);
@@ -77,7 +69,7 @@ public class DataFeedLoader {
   }
 
   public DataFeedResult load() {
-    log.debug("Loading data feed ...");
+    log.debug("Loading data feed…");
 
     try {
       reloadCaches();
@@ -98,7 +90,7 @@ public class DataFeedLoader {
         log.warn("Can not sleep due to DbUnavailableException", e);
       }
     } catch (OverLimitException overLimitException) {
-      log.error("OverLimitException ({}); sleeping for 1 minute ...  ",
+      log.error("OverLimitException ({}); sleeping for 1 minute…  ",
           overLimitException.getMessage());
       try {
         Thread.sleep(60 * 1000);
@@ -214,26 +206,9 @@ public class DataFeedLoader {
     return trips;
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
   private <T extends Entity> Optional<FeedResult<T>> getFeed(Class<T> type, String fromVersion) {
-
     log.info("Get data feed for {} fromVersion {}", type.getSimpleName(), fromVersion);
-
-    Class responseType = FEED_RESULT_TYPE.get(type);
-    if (responseType == null) {
-      log.warn("GetFeed for {} is not supported", type);
-      return Optional.empty();
-    }
-
-    AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-        .method("GetFeed")
-        .params(GetFeedParameters.getFeedParamsBuilder()
-            .typeName(type.getSimpleName())
-            .fromVersion(fromVersion)
-            .build())
-        .build();
-
-    return geotabApi.call(request, responseType);
+    return geotabApi.callGetFeed(GetFeedParameters.getFeedParamsBuilder()
+        .typeName(type.getSimpleName()).fromVersion(fromVersion).build(), type);
   }
-
 }

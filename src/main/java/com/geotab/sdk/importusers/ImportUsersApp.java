@@ -37,7 +37,7 @@ public class ImportUsersApp {
 
   private static final Logger log = LoggerFactory.getLogger(ImportUsersApp.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     // Process command line arguments
     Cmd cmd = new Cmd(ImportUsersApp.class, new Arg("filePath", true, "Location of the CSV file to import"));
     String filePath = cmd.get("filePath");
@@ -65,7 +65,7 @@ public class ImportUsersApp {
    * @return A collection of {@link UserDetails}.
    */
   private static List<UserDetails> loadUsersFromCsv(String filePath) {
-    log.debug("Loading CSV {} ...", filePath);
+    log.debug("Loading CSV {}…", filePath);
 
     LocalDateTime minDate = LocalDateTime.of(1986, 1, 1, 0, 0, 0, 0);
     LocalDateTime maxDate = LocalDateTime.of(2050, 1, 1, 0, 0, 0, 0);
@@ -112,7 +112,7 @@ public class ImportUsersApp {
   }
 
   private static LoginResult authenticate(Api api) {
-    log.debug("Authenticating ...");
+    log.debug("Authenticating…");
 
     LoginResult loginResult = null;
 
@@ -135,7 +135,7 @@ public class ImportUsersApp {
   }
 
   private static void importUsers(Api api, List<UserDetails> userEntries) {
-    log.debug("Start importing users ...");
+    log.debug("Start importing users…");
 
     try {
 
@@ -150,19 +150,12 @@ public class ImportUsersApp {
         user.setSecurityGroups(filterSecurityGroupsByName(userDetails.securityNodeName, securityGroups));
         if (isUserValid(user, existingUsers)) {
           try {
-            // Add the user.
-            AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-                .method("Add")
-                .params(EntityParameters.entityParamsBuilder()
-                    .typeName("User")
-                    .entity(user)
-                    .build())
-                .build();
-
-            Optional<Id> response = api.call(request, IdResponse.class);
+            // Add the user
+            Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
+                .typeName("User").entity(user).build());
 
             if (response.isPresent()) {
-              log.info("User {} added with id {} .", user.getName(), response.get().getId());
+              log.info("User {} added with id {}", user.getName(), response.get().getId());
               user.setId(new Id(response.get().getId()));
               existingUsers.add(user);
             } else {
@@ -185,16 +178,10 @@ public class ImportUsersApp {
   }
 
   private static List<User> getExistingUsers(Api api) {
-    log.debug("Get existing users ...");
+    log.debug("Get existing users…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("User")
-              .build())
-          .build();
-
-      return (List<User>) api.call(request, UserListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("User").build(), User.class).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing users ", exception);
       System.exit(1);
@@ -204,16 +191,10 @@ public class ImportUsersApp {
   }
 
   private static List<Group> getExistingGroups(Api api) {
-    log.debug("Get existing groups ...");
+    log.debug("Get existing groups…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Group")
-              .build())
-          .build();
-
-      return api.call(request, GroupListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder()
+          .typeName("Group").build(), Group.class).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing groups ", exception);
       System.exit(1);
@@ -223,19 +204,11 @@ public class ImportUsersApp {
   }
 
   private static List<Group> getSecurityGroups(Api api) {
-    log.debug("Get security groups ...");
+    log.debug("Get security groups…");
     try {
-      AuthenticatedRequest<?> request = AuthenticatedRequest.authRequestBuilder()
-          .method("Get")
-          .params(SearchParameters.searchParamsBuilder()
-              .typeName("Group")
-              .search(GroupSearch.builder()
-                  .id(SecurityGroup.SECURITY_GROUP_ID)
-                  .build())
-              .build())
-          .build();
-
-      return api.call(request, GroupListResponse.class).orElse(new ArrayList<>());
+      return api.callGet(SearchParameters.searchParamsBuilder().typeName("Group")
+          .search(GroupSearch.builder().id(SecurityGroup.SECURITY_GROUP_ID).build()).build(), Group.class)
+          .orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get security groups ", exception);
       System.exit(1);

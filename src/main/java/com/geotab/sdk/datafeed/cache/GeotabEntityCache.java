@@ -58,8 +58,8 @@ public abstract class GeotabEntityCache<T extends Entity> {
   protected abstract Optional<List<T>> fetchAll();
 
   /**
-   * In the extreme unlike scenario when the entity is not found in Geotab system by the id, then
-   * create a fake entity of the required type.
+   * In the extreme unlike scenario when the entity is not found in Geotab system by the id, then create a fake entity
+   * of the required type.
    *
    * @param id The entity id.
    * @return Fake entity with the provided id.
@@ -107,7 +107,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
    */
   public synchronized boolean flush() {
     if (cache != null) {
-      getLog().debug("Removing all from cache ...");
+      getLog().debug("Removing all from cache…");
 
       try {
         cache.invalidateAll();
@@ -127,7 +127,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
    * @return Whether the operation succeeded or not.
    */
   public synchronized boolean reloadAll() {
-    getLog().debug("Reloading cache ...");
+    getLog().debug("Reloading cache…");
 
     boolean reloaded = flush();
 

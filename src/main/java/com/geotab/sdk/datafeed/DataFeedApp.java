@@ -44,7 +44,7 @@ public class DataFeedApp {
   private static void addShutdownHook(DataFeedWorker dataFeedWorker) {
     final Thread mainThread = Thread.currentThread();
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      log.debug("Application is stopping ...");
+      log.debug("Application is stopping…");
       if (dataFeedWorker.isProcessing()) {
         dataFeedWorker.shutdown();
       }
