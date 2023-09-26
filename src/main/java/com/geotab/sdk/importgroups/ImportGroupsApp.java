@@ -6,11 +6,8 @@ import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.EntityParameters;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.GroupListResponse;
-import com.geotab.http.response.IdResponse;
 import com.geotab.model.Id;
 import com.geotab.model.entity.group.CompanyGroup;
 import com.geotab.model.entity.group.Group;
@@ -40,8 +37,6 @@ public class ImportGroupsApp {
     List<CsvGroupEntry> groupEntries = loadGroupsFromCsv(filePath);
 
     // Create the Geotab API object used to make calls to the server
-    // Note: server name should be the generic server as DBs can be moved without notice.
-    // For example; use "my.geotab.com" rather than "my3.geotab.com".
     try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user

@@ -5,19 +5,9 @@ import static java.lang.System.out;
 
 import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.CountResponse;
-import com.geotab.model.login.Credentials;
 import com.geotab.sdk.Util.Cmd;
 import java.util.Scanner;
-import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

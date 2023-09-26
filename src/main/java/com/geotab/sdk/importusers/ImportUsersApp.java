@@ -7,12 +7,8 @@ import com.geotab.api.Api;
 import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.AuthenticatedRequest;
 import com.geotab.http.request.param.EntityParameters;
 import com.geotab.http.request.param.SearchParameters;
-import com.geotab.http.response.GroupListResponse;
-import com.geotab.http.response.IdResponse;
-import com.geotab.http.response.UserListResponse;
 import com.geotab.model.Id;
 import com.geotab.model.entity.group.Group;
 import com.geotab.model.entity.group.SecurityGroup;
@@ -46,8 +42,6 @@ public class ImportUsersApp {
     List<UserDetails> userEntries = loadUsersFromCsv(filePath);
 
     // Create the Geotab API object used to make calls to the server
-    // Note: server name should be the generic server as DBs can be moved without notice.
-    // For example; use "my.geotab.com" rather than "my3.geotab.com".
     try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
@@ -207,7 +201,7 @@ public class ImportUsersApp {
     log.debug("Get security groups…");
     try {
       return api.callGet(SearchParameters.searchParamsBuilder().typeName("Group")
-          .search(GroupSearch.builder().id(SecurityGroup.SECURITY_GROUP_ID).build()).build(), Group.class)
+              .search(GroupSearch.builder().id(SecurityGroup.SECURITY_GROUP_ID).build()).build(), Group.class)
           .orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get security groups ", exception);
@@ -236,7 +230,6 @@ public class ImportUsersApp {
     }
     return organizationGroups;
   }
-
 
   /**
    * Searches a list of security groups matching the names provided.

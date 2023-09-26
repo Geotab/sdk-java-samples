@@ -43,8 +43,6 @@ public class ImportDevicesApp {
     List<CsvDeviceEntry> deviceEntries = loadDevicesFromCsv(filePath);
 
     // Create the Geotab API object used to make calls to the server
-    // Note: server name should be the generic server as DBs can be moved without notice.
-    // For example; use "my.geotab.com" rather than "my3.geotab.com".
     try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
 
       // Authenticate user
