@@ -16,7 +16,17 @@ Then build the samples jar and execute the main class you need:
 > git clone https://github.com/Geotab/sdk-java-samples.git
 > cd sdk-java-samples
 > mvn clean verify
-> java -cp target/sdk-java-samples.jar <mainClassWithPackage>
+```
+
+You could run it from your IDE or with the following command line:
+
+```shell
+> java -cp target/sdk-java-samples.jar;target/lib/* <mainClassWithPackage>
+```
+In Unix-based systems like Linux or macOS, you would use a colon (`:`) instead of a semicolon (`;`) as the path separator:
+
+```shell
+> java -cp "target/sdk-java-samples.jar:target/lib/*" <mainClassWithPackage>
 ```
 
 ## Examples list
