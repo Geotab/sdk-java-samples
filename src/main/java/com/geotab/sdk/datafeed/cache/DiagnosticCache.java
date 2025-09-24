@@ -5,7 +5,7 @@ import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.entity.diagnostic.BasicDiagnostic;
 import com.geotab.model.entity.diagnostic.Diagnostic;
 import com.geotab.model.entity.diagnostic.NoDiagnostic;
-import com.geotab.model.search.IdSearch;
+import com.geotab.model.search.Search;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   protected Optional<Diagnostic> fetchEntity(String id) {
     log.debug("Loading Diagnostic by id {} from Geotab…", id);
     Optional<List<Diagnostic>> diagnostics = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(new IdSearch(id)).typeName("Diagnostic").build(), Diagnostic.class);
+        .search(new Search(id)).typeName("Diagnostic").build(), Diagnostic.class);
 
     if (diagnostics.isPresent() && !diagnostics.get().isEmpty()) {
       log.debug("Diagnostic by id {} loaded from Geotab.", id);

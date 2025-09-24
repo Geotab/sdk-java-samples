@@ -1,29 +1,24 @@
 package com.geotab.sdk.getlogs;
 
-import static com.geotab.api.DataStore.DeviceEntity;
-import static com.geotab.api.DataStore.LogRecordEntity;
-import static com.geotab.api.WebMethods.GetAddresses;
-import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.plain.Entities.DeviceEntity;
 import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
+import static com.geotab.util.Util.apply;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.out;
-import static java.util.Collections.singletonList;
 
 import com.geotab.api.Api;
-import com.geotab.api.Api.MultiCallBuilder;
-import com.geotab.api.GeotabApi;
-import com.geotab.http.request.param.GetAddressesParameters;
-import com.geotab.model.ReverseGeocodeAddress;
-import com.geotab.model.coordinate.Coordinate;
-import com.geotab.model.entity.device.Device;
-import com.geotab.model.entity.logrecord.LogRecord;
-import com.geotab.model.search.DeviceSearch;
-import com.geotab.model.search.LogRecordSearch;
+import com.geotab.plain.Entities;
+import com.geotab.plain.WebMethods;
+import com.geotab.plain.objectmodel.Coordinate;
+import com.geotab.plain.objectmodel.Device;
+import com.geotab.plain.objectmodel.DeviceSearch;
+import com.geotab.plain.objectmodel.LogRecord;
+import com.geotab.plain.objectmodel.LogRecordSearch;
+import com.geotab.plain.parameters.GetAddressesParameters;
 import com.geotab.sdk.Util.Arg;
 import com.geotab.sdk.Util.Cmd;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -38,36 +33,51 @@ import java.util.function.Supplier;
 public class GetLogsApp {
 
   public static void main(String[] args) throws Exception {
-    Cmd cmd = new Cmd(GetLogsApp.class, new Arg("serialNumber", false, "Serial number of the device"));
-    String serialNumber = cmd.get("serialNumber");
+    var cmd = new Cmd(GetLogsApp.class, new Arg("serialNumber", false, "Serial number of the device"));
+    var serialNumber = cmd.get("serialNumber");
 
-    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
-      // Get all devices or, if SN is available, only one device by serial number
-      List<Device> devices = api.callGet(DeviceEntity, DeviceSearch.builder()
-          .serialNumber(serialNumber).build(), 10).orElseThrow();
+    try (Api api = cmd.newApi()) {
+      // Get 10 devices or, if SN is available, only one device by serial number
+      var devices = api.callGet(DeviceEntity, apply(new DeviceSearch(), s -> s.serialNumber = serialNumber), 100).orElseThrow()
+          .stream().filter(d -> isNullOrEmpty(d.serialNumber) || "000-000-0000".equals(d.serialNumber))
+          .toList();
 
       // Get logs for all (or one SN) devices
-      LocalDateTime toDate = nowUtcLocalDateTime();
-      LocalDateTime fromDate = toDate.minusDays(7);
-      MultiCallBuilder call = api.buildMultiCall();
-      Map<Device, Supplier<List<LogRecord>>> result = new HashMap<>();
-      for (Device d : devices) {
-        result.put(d, call.callGet(LogRecordEntity, LogRecordSearch.builder()
-            .deviceSearch(d.getId()).fromDate(fromDate).toDate(toDate).build()));
+      var toDate = nowUtcLocalDateTime();
+      var fromDate = toDate.minusDays(7);
+      var call = api.buildMultiCall();
+      var result = new HashMap<Device, Supplier<List<LogRecord>>>();
+      for (var d : devices) {
+        out.format("🚗Getting logs for %s [serialNumber=%s, name=%s, deviceType=%s]…%n",
+            d.getId(), d.serialNumber, d.getName(), d.deviceType);
+        result.put(d, call.callGet(Entities.LogRecordEntity, apply(new LogRecordSearch(), s -> {
+          s.deviceSearch = apply(new com.geotab.plain.objectmodel.DeviceSearch(), ds -> ds.setId(d.getId().getId()));
+          s.fromDate = fromDate;
+          s.toDate = toDate;
+        })));
       }
       call.execute(); // if succeeds, each supplier will contain the corresponding result
+      for (var entry : result.entrySet()) {
+        for (var device : result.keySet()) {
+          out.format("🟢Logs for %s [serialNumber=%s, name=%s, deviceType=%s]: %s logs%n", device.serialNumber,
+              device.getId(), device.getName(), device.deviceType, entry.getValue().get().size());
+        }
+      }
 
       // Print last week coordinates for each device
-      result.forEach((device, logs) -> {
-        for (LogRecord r : logs.get()) {
-          List<Coordinate> coordinates = singletonList(r.toSimpleCoordinate());
-          GetAddressesParameters parameters = GetAddressesParameters.builder().coordinates(coordinates).build();
-          var addresses = api.callMethod(GetAddresses, parameters);
-          ReverseGeocodeAddress address = addresses.flatMap(o -> o.stream().findFirst()).orElseThrow();
-          out.format("%s Date: %s Lat: %s Lon: %s Address: %s%n", device.getSerialNumber(), r.getDateTime(),
-              r.getLatitude(), r.getLongitude(), address.getFormattedAddress());
-        }
-      });
+      for (var entry : result.entrySet()) {
+        if (entry.getValue().get().isEmpty()) continue;
+        var lastLog = entry.getValue().get().getLast();
+        var coordinate = apply(new Coordinate(), c -> {
+          c.y = lastLog.latitude;
+          c.x = lastLog.longitude;
+        });
+        var parameters = apply(new GetAddressesParameters(), p -> p.coordinates = List.of(coordinate));
+        var addresses = api.call(WebMethods.GetAddresses, parameters);
+        var address = addresses.flatMap(o -> o.stream().findFirst()).orElseThrow();
+        out.format("📌Address for %s [date=%s, lat=%s, lon=%s]: %s%n", entry.getKey().getId(), lastLog.dateTime,
+            lastLog.latitude, lastLog.longitude, address.formattedAddress);
+      }
     }
   }
 }

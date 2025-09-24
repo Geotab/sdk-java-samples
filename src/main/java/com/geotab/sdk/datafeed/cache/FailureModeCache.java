@@ -4,7 +4,7 @@ import com.geotab.api.Api;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.entity.failuremode.FailureMode;
 import com.geotab.model.entity.failuremode.NoFailureMode;
-import com.geotab.model.search.IdSearch;
+import com.geotab.model.search.Search;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public final class FailureModeCache extends GeotabEntityCache<FailureMode> {
   protected Optional<FailureMode> fetchEntity(String id) {
     log.debug("Loading FailureMode by id {} from Geotab…", id);
     Optional<List<FailureMode>> failureModes = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(new IdSearch(id)).typeName("FailureMode").build(), FailureMode.class);
+        .search(new Search(id)).typeName("FailureMode").build(), FailureMode.class);
 
     if (failureModes.isPresent() && !failureModes.get().isEmpty()) {
       log.debug("FailureMode by id {} loaded from Geotab.", id);

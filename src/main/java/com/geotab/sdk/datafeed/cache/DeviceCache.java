@@ -4,7 +4,7 @@ import com.geotab.api.Api;
 import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.entity.device.Device;
 import com.geotab.model.entity.device.NoDevice;
-import com.geotab.model.search.IdSearch;
+import com.geotab.model.search.Search;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public final class DeviceCache extends GeotabEntityCache<Device> {
   protected Optional<Device> fetchEntity(String id) {
     log.debug("Loading Device by id {} from Geotab…", id);
     Optional<List<Device>> devices = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(new IdSearch(id)).typeName("Device").build(), Device.class);
+        .search(new Search(id)).typeName("Device").build(), Device.class);
 
     if (devices.isPresent() && !devices.get().isEmpty()) {
       log.debug("Device by id {} loaded from Geotab.", id);
