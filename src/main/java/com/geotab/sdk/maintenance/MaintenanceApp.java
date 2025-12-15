@@ -48,8 +48,9 @@ public class MaintenanceApp {
           s.workOrderId = order.getId().getId();
         }), 100).orElseThrow();
         for (var job : jobs) {
+          var typeInfo = job.maintenanceType.getName() + "(" + job.maintenanceType.source + ")";
           out.format("   🔧Job [id=%s, type=%s, closed=%s, date=%s]%n",
-              job.getId(), job.maintenanceType.getName() + "(" + job.maintenanceType.source + ")", job.isClosed, job.dateTime);
+              job.getId(), typeInfo, job.isClosed, job.dateTime);
         }
         out.println();
       }

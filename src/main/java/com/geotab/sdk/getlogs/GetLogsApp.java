@@ -38,7 +38,8 @@ public class GetLogsApp {
 
     try (Api api = cmd.newApi()) {
       // Get 10 devices or, if SN is available, only one device by serial number
-      var devices = api.callGet(DeviceEntity, apply(new DeviceSearch(), s -> s.serialNumber = serialNumber), 100).orElseThrow()
+      var deviceSearch = apply(new DeviceSearch(), s -> s.serialNumber = serialNumber);
+      var devices = api.callGet(DeviceEntity, deviceSearch, 100).orElseThrow()
           .stream().filter(d -> isNullOrEmpty(d.serialNumber) || "000-000-0000".equals(d.serialNumber))
           .toList();
 
