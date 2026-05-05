@@ -1,37 +1,25 @@
 package com.geotab.sdk.datafeed.loader;
 
-import com.geotab.model.entity.faultdata.FaultData;
-import com.geotab.model.entity.logrecord.LogRecord;
-import com.geotab.model.entity.statusdata.StatusData;
-import com.geotab.model.entity.trip.Trip;
+import com.geotab.plain.objectmodel.LogRecord;
+import com.geotab.plain.objectmodel.Trip;
+import com.geotab.plain.objectmodel.engine.FaultData;
+import com.geotab.plain.objectmodel.engine.StatusData;
 
-/**
- * Contains latest data tokens.
- */
+/** Contains latest data tokens. */
 public class DataFeedParameters {
 
-  /**
-   * The last ExceptionEvent token.
-   */
+  /** The last ExceptionEvent token. */
   public String lastExceptionToken;
 
-  /**
-   * The last {@link FaultData} token.
-   */
+  /** The last {@link FaultData} token. */
   public String lastFaultDataToken;
 
-  /**
-   * The last {@link LogRecord} token.
-   */
+  /** The last {@link LogRecord} token. */
   public String lastGpsDataToken;
 
-  /**
-   * The last {@link StatusData} token.
-   */
+  /** The last {@link StatusData} token. */
   public String lastStatusDataToken;
 
-  /**
-   * The last {@link Trip} token.
-   */
+  /** The last {@link Trip} token. */
   public String lastTripToken;
 }

@@ -1,11 +1,11 @@
 package com.geotab.sdk.datafeed.cache;
 
+import static com.geotab.plain.Entities.DiagnosticEntity;
+import static com.geotab.util.Util.apply;
+
 import com.geotab.api.Api;
-import com.geotab.http.request.param.SearchParameters;
-import com.geotab.model.entity.diagnostic.BasicDiagnostic;
-import com.geotab.model.entity.diagnostic.Diagnostic;
-import com.geotab.model.entity.diagnostic.NoDiagnostic;
-import com.geotab.model.search.Search;
+import com.geotab.model.Id;
+import com.geotab.plain.objectmodel.engine.Diagnostic;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -21,11 +21,8 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   private UnitOfMeasureCache unitOfMeasureCache;
 
   public DiagnosticCache(
-      Api api,
-      ControllerCache controllerCache,
-      UnitOfMeasureCache unitOfMeasureCache
-  ) {
-    super(api, NoDiagnostic.getInstance());
+      Api api, ControllerCache controllerCache, UnitOfMeasureCache unitOfMeasureCache) {
+    super(api, null);
     this.controllerCache = controllerCache;
     this.unitOfMeasureCache = unitOfMeasureCache;
   }
@@ -38,42 +35,36 @@ public final class DiagnosticCache extends GeotabEntityCache<Diagnostic> {
   @Override
   protected Optional<Diagnostic> fetchEntity(String id) {
     log.debug("Loading Diagnostic by id {} from Geotab…", id);
-    Optional<List<Diagnostic>> diagnostics = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(new Search(id)).typeName("Diagnostic").build(), Diagnostic.class);
-
-    if (diagnostics.isPresent() && !diagnostics.get().isEmpty()) {
-      log.debug("Diagnostic by id {} loaded from Geotab.", id);
-      return Optional.of(diagnostics.get().get(0));
-    }
-
-    return Optional.empty();
+    return api.callGetById(DiagnosticEntity, id);
   }
 
   @Override
   protected Optional<List<Diagnostic>> fetchAll() {
     log.debug("Loading all Diagnostic from Geotab…");
-    return api.callGet(SearchParameters.searchParamsBuilder().typeName("Diagnostic").build(), Diagnostic.class);
+    return api.callGetAll(DiagnosticEntity);
   }
 
   @Override
   protected Diagnostic createFakeCacheable(String id) {
     log.debug(
-        "No Diagnostic with id {} found in Geotab; creating a fake Diagnostic to cache it.",
-        id);
-    return BasicDiagnostic.basicDiagnosticBuilder().id(id).build();
+        "No Diagnostic with id {} found in Geotab; creating a fake Diagnostic to cache it.", id);
+    return apply(new Diagnostic(), d -> d.setId(new Id(id)));
   }
 
   @Override
   public Diagnostic get(String id) {
     Diagnostic diagnostic = super.get(id);
 
-    if (diagnostic.getController() != null) {
-      diagnostic.setController(controllerCache.get(diagnostic.getController().getId().getId()));
+    if (diagnostic == null) {
+      return null;
     }
 
-    if (diagnostic.getUnitOfMeasure() != null) {
-      diagnostic
-          .setUnitOfMeasure(unitOfMeasureCache.get(diagnostic.getUnitOfMeasure().getId().getId()));
+    if (diagnostic.controller != null && diagnostic.controller.getId() != null) {
+      diagnostic.controller = controllerCache.get(diagnostic.controller.getId().getId());
+    }
+
+    if (diagnostic.unitOfMeasure != null && diagnostic.unitOfMeasure.getId() != null) {
+      diagnostic.unitOfMeasure = unitOfMeasureCache.get(diagnostic.unitOfMeasure.getId().getId());
     }
 
     return diagnostic;

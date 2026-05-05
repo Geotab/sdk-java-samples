@@ -1,7 +1,6 @@
 package com.geotab.sdk.getlogs;
 
 import static com.geotab.plain.Entities.DeviceEntity;
-import static com.geotab.util.DateTimeUtil.nowUtcLocalDateTime;
 import static com.geotab.util.Util.apply;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.out;
@@ -17,15 +16,18 @@ import com.geotab.plain.objectmodel.LogRecordSearch;
 import com.geotab.plain.parameters.GetAddressesParameters;
 import com.geotab.sdk.Util.Arg;
 import com.geotab.sdk.Util.Cmd;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Supplier;
 
 /**
  * This is a Geotab API example of downloading a device's logs. Steps:
+ *
  * <ol>
- * <li>Search for multiple devices or one by its serial number.
- * <li>Get logs associated with all devices for a given time period.
+ *   <li>Search for multiple devices or one by its serial number.
+ *   <li>Get logs associated with all devices for a given time period.
  * </ol>
  *
  * <p>A complete Geotab API object and method reference is available at the Geotab Developer page.
@@ -44,15 +46,15 @@ public class GetLogsApp {
           .toList();
 
       // Get logs for all (or one SN) devices
-      var toDate = nowUtcLocalDateTime();
-      var fromDate = toDate.minusDays(7);
+      var toDate = Instant.now();
+      var fromDate = toDate.minus(7, ChronoUnit.DAYS);
       var call = api.buildMultiCall();
       var result = new HashMap<Device, Supplier<List<LogRecord>>>();
       for (var d : devices) {
         out.format("🚗Getting logs for %s [serialNumber=%s, name=%s, deviceType=%s]…%n",
-            d.getId(), d.serialNumber, d.getName(), d.deviceType);
+          d.getId(), d.serialNumber, d.getName(), d.deviceType);
         result.put(d, call.callGet(Entities.LogRecordEntity, apply(new LogRecordSearch(), s -> {
-          s.deviceSearch = apply(new com.geotab.plain.objectmodel.DeviceSearch(), ds -> ds.setId(d.getId().getId()));
+          s.deviceSearch = apply(new DeviceSearch(), ds -> ds.setId(d.getId().getId()));
           s.fromDate = fromDate;
           s.toDate = toDate;
         })));
@@ -61,7 +63,7 @@ public class GetLogsApp {
       for (var entry : result.entrySet()) {
         for (var device : result.keySet()) {
           out.format("🟢Logs for %s [serialNumber=%s, name=%s, deviceType=%s]: %s logs%n", device.serialNumber,
-              device.getId(), device.getName(), device.deviceType, entry.getValue().get().size());
+            device.getId(), device.getName(), device.deviceType, entry.getValue().get().size());
         }
       }
 
@@ -77,7 +79,7 @@ public class GetLogsApp {
         var addresses = api.call(WebMethods.GetAddresses, parameters);
         var address = addresses.flatMap(o -> o.stream().findFirst()).orElseThrow();
         out.format("📌Address for %s [date=%s, lat=%s, lon=%s]: %s%n", entry.getKey().getId(), lastLog.dateTime,
-            lastLog.latitude, lastLog.longitude, address.formattedAddress);
+          lastLog.latitude, lastLog.longitude, address.formattedAddress);
       }
     }
   }

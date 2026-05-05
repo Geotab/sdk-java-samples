@@ -1,6 +1,6 @@
 package com.geotab.sdk.importusers;
 
-import com.geotab.model.entity.user.User;
+import com.geotab.plain.objectmodel.User;
 
 public class UserDetails {
 

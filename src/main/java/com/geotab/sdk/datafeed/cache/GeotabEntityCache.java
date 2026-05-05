@@ -7,11 +7,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 
-/**
- * Base {@link Entity} cache.
- */
+/** Base {@link Entity} cache. */
 public abstract class GeotabEntityCache<T extends Entity> {
 
   protected LoadingCache<String, T> cache;
@@ -24,15 +23,13 @@ public abstract class GeotabEntityCache<T extends Entity> {
     this.api = api;
     this.noEntity = noEntity;
     this.cache = CacheBuilder.newBuilder()
-        .maximumSize(600)
-        //.expireAfterWrite(12, TimeUnit.HOURS)
-        .build(new CacheLoader<String, T>() {
-          @Override
-          public T load(String key) {
-            Optional<T> entity = fetchEntity(key);
-            return entity.orElseGet(() -> createFakeCacheable(key));
-          }
-        });
+      .maximumSize(600)
+      // .expireAfterWrite(12, TimeUnit.HOURS)
+      .build(new CacheLoader<>() {
+        @Override public T load(@Nullable String key) {
+          return fetchEntity(key).orElseGet(() -> createFakeCacheable(key));
+        }
+      });
   }
 
   /**
@@ -58,8 +55,8 @@ public abstract class GeotabEntityCache<T extends Entity> {
   protected abstract Optional<List<T>> fetchAll();
 
   /**
-   * In the extreme unlike scenario when the entity is not found in Geotab system by the id, then create a fake entity
-   * of the required type.
+   * In the extreme unlike scenario when the entity is not found in Geotab system by the id, then
+   * create a fake entity of the required type.
    *
    * @param id The entity id.
    * @return Fake entity with the provided id.
@@ -72,9 +69,8 @@ public abstract class GeotabEntityCache<T extends Entity> {
    * @return Whether the operation succeeded or not.
    */
   protected boolean cacheNoEntity() {
-    if (noEntity != null) {
-      cache.put(noEntity.getId().getId(), noEntity);
-    }
+    if (noEntity == null) return true;
+    cache.put(noEntity.getId().getId(), noEntity);
     return true;
   }
 

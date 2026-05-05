@@ -1,17 +1,14 @@
 package com.geotab.sdk.importgroups;
 
-import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.plain.Entities.GroupEntity;
+import static com.geotab.util.Util.apply;
 
 import com.geotab.api.Api;
-import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.param.EntityParameters;
-import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.Id;
-import com.geotab.model.entity.group.CompanyGroup;
-import com.geotab.model.entity.group.Group;
 import com.geotab.model.login.LoginResult;
+import com.geotab.plain.objectmodel.Group;
 import com.geotab.sdk.Util.Arg;
 import com.geotab.sdk.Util.Cmd;
 import java.nio.file.Files;
@@ -37,7 +34,7 @@ public class ImportGroupsApp {
     List<CsvGroupEntry> groupEntries = loadGroupsFromCsv(filePath);
 
     // Create the Geotab API object used to make calls to the server
-    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = cmd.newApi()) {
 
       // Authenticate user
       authenticate(api);
@@ -57,16 +54,15 @@ public class ImportGroupsApp {
     log.debug("Loading CSV {}…", filePath);
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
-      return rows
-          .filter(row -> row != null && !row.startsWith("#"))
-          .map(row -> {
-            String[] columns = row.split(",");
-            CsvGroupEntry out = new CsvGroupEntry();
-            out.parentGroupName = columns[0];
-            out.groupName = columns[1];
-            return out;
-          })
-          .collect(Collectors.toList());
+      return rows.filter(row -> row != null && !row.startsWith("#"))
+        .map(row -> {
+          String[] columns = row.split(",");
+          CsvGroupEntry out = new CsvGroupEntry();
+          out.parentGroupName = columns[0];
+          out.groupName = columns[1];
+          return out;
+        })
+        .collect(Collectors.toList());
     } catch (Exception exception) {
       log.error("Failed to load csv file {} : ", filePath, exception);
       System.exit(1);
@@ -114,10 +110,11 @@ public class ImportGroupsApp {
 
         // If there is no parent node name or if the parent node's name matches organization
         // or entire organization create a new CompanyGroup object.
-        if (parentGroupName == null || parentGroupName.isEmpty()
-            || "organization".equals(parentGroupName.toLowerCase())
-            || "entire organization".equals(parentGroupName.toLowerCase())) {
-          parentGroup = new CompanyGroup();
+        if (parentGroupName == null
+          || parentGroupName.isEmpty()
+          || "organization".equals(parentGroupName.toLowerCase())
+          || "entire organization".equals(parentGroupName.toLowerCase())) {
+          parentGroup = Group.fromString("GroupCompanyId");
         } else {
           Optional<Group> parentGroupFromServer = findGroup(existingGroups, parentGroupName);
 
@@ -149,25 +146,21 @@ public class ImportGroupsApp {
         // If a node exists with this name we wont add it and try to add the next node.
         Optional<Group> groupFromServer = findGroup(existingGroups, groupEntry.groupName);
         if (groupFromServer.isPresent()) {
-          log.info("A group with the name '{}' already exists, please change this group name.",
-              groupEntry.groupName);
+          log.info("A group with the name '{}' already exists, please change this group name.", groupEntry.groupName);
           continue;
         }
 
         try {
           // Create the group object.
-          Group newGroup = Group.builder()
-              .name(groupEntry.groupName)
-              .parent(parentGroup)
-              .build();
+          // TODO: Group.parent field is missing from the plain SDK (JSDK-89 feature branch).
+          // Parent group assignment is not yet supported; the group is created without a parent.
+          Group newGroup = apply(new Group(), g -> g.setName(groupEntry.groupName));
 
           // Add the group.
-          Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
-              .typeName("Group").entity(newGroup).build());
+          Optional<Id> response = api.callAdd(GroupEntity, newGroup);
 
           if (response.isPresent()) {
-            log.info("Group {} added with id {} .",
-                groupEntry.groupName, response.get().getId());
+            log.info("Group {} added with id {} .", groupEntry.groupName, response.get().getId());
           } else {
             log.warn("Group {} not added; no id returned", groupEntry.groupName);
           }
@@ -175,7 +168,6 @@ public class ImportGroupsApp {
           // Catch and display any error that occur when adding the group
           log.error("Failed to import group {}", groupEntry.groupName, exception);
         }
-
       }
 
       log.info("Groups imported.");
@@ -183,14 +175,12 @@ public class ImportGroupsApp {
       log.error("Failed to get import groups", exception);
       System.exit(1);
     }
-
   }
 
   private static List<Group> getExistingGroups(Api api) {
     log.debug("Get existing groups…");
     try {
-      return api.callGet(SearchParameters.searchParamsBuilder()
-          .typeName("Group").build(), Group.class).orElse(new ArrayList<>());
+      return api.callGet(GroupEntity, null, null).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing groups", exception);
       System.exit(1);

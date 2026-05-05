@@ -1,10 +1,11 @@
 package com.geotab.sdk.datafeed.cache;
 
+import static com.geotab.plain.Entities.ControllerEntity;
+import static com.geotab.util.Util.apply;
+
 import com.geotab.api.Api;
-import com.geotab.http.request.param.SearchParameters;
-import com.geotab.model.entity.controller.Controller;
-import com.geotab.model.entity.controller.NoController;
-import com.geotab.model.search.ControllerSearch;
+import com.geotab.model.Id;
+import com.geotab.plain.objectmodel.engine.Controller;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public final class ControllerCache extends GeotabEntityCache<Controller> {
   private static final Logger log = LoggerFactory.getLogger(ControllerCache.class);
 
   public ControllerCache(Api api) {
-    super(api, NoController.getInstance());
+    super(api, null);
   }
 
   @Override
@@ -29,26 +30,18 @@ public final class ControllerCache extends GeotabEntityCache<Controller> {
   @Override
   protected Optional<Controller> fetchEntity(String id) {
     log.debug("Loading Controller by id {} from Geotab…", id);
-    Optional<List<Controller>> controllers = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(ControllerSearch.builder().id(id).build()).typeName("Controller").build(), Controller.class);
-
-    if (controllers.isPresent() && !controllers.get().isEmpty()) {
-      log.debug("Controller by id {} loaded from Geotab.", id);
-      return Optional.of(controllers.get().get(0));
-    }
-
-    return Optional.empty();
+    return api.callGetById(ControllerEntity, id);
   }
 
   @Override
   protected Optional<List<Controller>> fetchAll() {
     log.debug("Loading all Controllers from Geotab…");
-    return api.callGet(SearchParameters.searchParamsBuilder().typeName("Controller").build(), Controller.class);
+    return api.callGetAll(ControllerEntity);
   }
 
   @Override
   protected Controller createFakeCacheable(String id) {
     log.debug("No Controller with id {} found in Geotab; creating a fake Controller to cache it.", id);
-    return Controller.builder().id(id).build();
+    return apply(new Controller(), c -> c.setId(new Id(id)));
   }
 }

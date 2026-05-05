@@ -1,10 +1,6 @@
 package com.geotab.sdk.importdevices;
 
-import com.geotab.model.entity.device.Device;
-
-/**
- * Models a row from a file with {@link Device} data.
- */
+/** Models a row from a file with device data. */
 public class CsvDeviceEntry {
 
   public String description;
