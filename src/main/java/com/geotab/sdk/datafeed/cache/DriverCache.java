@@ -1,27 +1,23 @@
 package com.geotab.sdk.datafeed.cache;
 
+import static com.geotab.plain.Entities.DriverEntity;
+import static com.geotab.util.Util.apply;
+
 import com.geotab.api.Api;
-import com.geotab.http.request.param.SearchParameters;
-import com.geotab.model.entity.user.Driver;
-import com.geotab.model.entity.user.NoDriver;
-import com.geotab.model.entity.user.UnknownDriver;
-import com.geotab.model.entity.user.User;
-import com.geotab.model.search.UserSearch;
+import com.geotab.model.Id;
+import com.geotab.plain.objectmodel.Driver;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * {@link Driver} cache singleton. Reloads controllers periodically on demand and caches them.
- */
+/** {@link Driver} cache singleton. Reloads controllers periodically on demand and caches them. */
 public final class DriverCache extends GeotabEntityCache<Driver> {
 
   private static final Logger log = LoggerFactory.getLogger(DriverCache.class);
 
   public DriverCache(Api api) {
-    super(api, NoDriver.getInstance());
+    super(api, null);
   }
 
   @Override
@@ -32,37 +28,18 @@ public final class DriverCache extends GeotabEntityCache<Driver> {
   @Override
   protected Optional<Driver> fetchEntity(String id) {
     log.debug("Loading Driver by id {} from Geotab…", id);
-    Optional<List<User>> drivers = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(UserSearch.builder().id(id).isDriver(true).build()).typeName("User").build(), User.class);
-
-    if (drivers.isPresent() && !drivers.get().isEmpty()) {
-      log.debug("Driver by id {} loaded from Geotab.", id);
-      return Optional.of((Driver) drivers.get().get(0));
-    }
-
-    return Optional.empty();
+    return api.callGetById(DriverEntity, id);
   }
 
   @Override
   protected Optional<List<Driver>> fetchAll() {
     log.debug("Loading all Drivers from Geotab…");
-    Optional<List<User>> drivers = api.callGet(SearchParameters.searchParamsBuilder()
-        .search(UserSearch.builder().isDriver(true).build()).typeName("User").build(), User.class);
-
-    return drivers.map(users -> users.stream().map(Driver.class::cast).collect(Collectors.toList())
-    );
+    return api.callGetAll(DriverEntity);
   }
 
   @Override
   protected Driver createFakeCacheable(String id) {
     log.debug("No Driver with id {} found in Geotab; creating a fake Driver to cache it.", id);
-    return Driver.driverBuilder().id(id).build();
-  }
-
-  @Override
-  protected boolean cacheNoEntity() {
-    cache.put(NoDriver.getInstance().getId().getId(), NoDriver.getInstance());
-    cache.put(UnknownDriver.getInstance().getId().getId(), UnknownDriver.getInstance());
-    return true;
+    return apply(new Driver(), d -> d.setId(new Id(id)));
   }
 }

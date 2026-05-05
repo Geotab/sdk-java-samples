@@ -1,22 +1,21 @@
 package com.geotab.sdk.datafeed.exporter;
 
-import static com.geotab.util.DateTimeUtil.localDateTimeToString;
-
 import com.geotab.model.entity.NameEntity;
-import com.geotab.model.entity.device.Device;
-import com.geotab.model.entity.device.GoDevice;
-import com.geotab.model.entity.diagnostic.DataDiagnostic;
-import com.geotab.model.entity.failuremode.FailureMode;
-import com.geotab.model.entity.failuremode.NoFailureMode;
-import com.geotab.model.entity.faultdata.FaultData;
-import com.geotab.model.entity.logrecord.LogRecord;
-import com.geotab.model.entity.statusdata.StatusData;
-import com.geotab.model.entity.trip.Trip;
+import com.geotab.plain.objectmodel.Device;
+import com.geotab.plain.objectmodel.GoDevice;
+import com.geotab.plain.objectmodel.LogRecord;
+import com.geotab.plain.objectmodel.Trip;
+import com.geotab.plain.objectmodel.XDevice;
+import com.geotab.plain.objectmodel.engine.DataDiagnostic;
+import com.geotab.plain.objectmodel.engine.FailureMode;
+import com.geotab.plain.objectmodel.engine.FaultData;
+import com.geotab.plain.objectmodel.engine.StatusData;
 import com.geotab.sdk.datafeed.loader.DataFeedResult;
 import com.google.common.collect.Iterables;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,11 +47,11 @@ public class ConsoleExporter implements Exporter {
 
     for (LogRecord logRecord : logRecords) {
       StringBuilder stringBuilder = new StringBuilder("\n");
-      appendDeviceValues(stringBuilder, logRecord.getDevice());
-      appendValue(stringBuilder, localDateTimeToString(logRecord.getDateTime()));
-      appendValue(stringBuilder, round(logRecord.getLongitude(), 3));
-      appendValue(stringBuilder, round(logRecord.getLatitude(), 3));
-      appendValue(stringBuilder, logRecord.getSpeed(), false);
+      appendDeviceValues(stringBuilder, logRecord.device);
+      appendValue(stringBuilder, Objects.toString(logRecord.dateTime, ""));
+      appendValue(stringBuilder, round(logRecord.longitude));
+      appendValue(stringBuilder, round(logRecord.latitude));
+      appendValue(stringBuilder, logRecord.speed, false);
 
       dataFeedBuilder.append(stringBuilder);
     }
@@ -70,15 +69,15 @@ public class ConsoleExporter implements Exporter {
 
     for (StatusData data : statusData) {
       StringBuilder stringBuilder = new StringBuilder("\n");
-      appendDeviceValues(stringBuilder, data.getDevice());
-      appendValue(stringBuilder, localDateTimeToString(data.getDateTime()));
+      appendDeviceValues(stringBuilder, data.device);
+      appendValue(stringBuilder, Objects.toString(data.dateTime, ""));
 
-      appendName(stringBuilder, data.getDiagnostic());
-      appendName(stringBuilder, data.getDiagnostic().getSource());
-      boolean isDataDiagnostic = data.getDiagnostic() instanceof DataDiagnostic;
-      appendValue(stringBuilder, data.getData(), isDataDiagnostic);
+      appendName(stringBuilder, data.diagnostic);
+      appendName(stringBuilder, data.diagnostic.source);
+      boolean isDataDiagnostic = data.diagnostic instanceof DataDiagnostic;
+      appendValue(stringBuilder, data.data, isDataDiagnostic);
       if (isDataDiagnostic) {
-        appendName(stringBuilder, data.getDiagnostic().getUnitOfMeasure(), false);
+        appendName(stringBuilder, data.diagnostic.unitOfMeasure, false);
       }
 
       dataFeedBuilder.append(stringBuilder);
@@ -97,19 +96,19 @@ public class ConsoleExporter implements Exporter {
 
     for (FaultData data : faultData) {
       StringBuilder stringBuilder = new StringBuilder("\n");
-      appendDeviceValues(stringBuilder, data.getDevice());
-      appendValue(stringBuilder, localDateTimeToString(data.getDateTime()));
+      appendDeviceValues(stringBuilder, data.device);
+      appendValue(stringBuilder, Objects.toString(data.dateTime, ""));
 
-      appendName(stringBuilder, data.getDiagnostic());
+      appendName(stringBuilder, data.diagnostic);
 
-      FailureMode failureMode = data.getFailureMode();
+      FailureMode failureMode = data.failureMode;
       appendName(stringBuilder, failureMode);
-      if (NoFailureMode.getInstance().equals(failureMode)) {
+      if (failureMode == null || failureMode.isSystemEntity()) {
         appendValue(stringBuilder, "None");
       } else {
-        appendName(stringBuilder, failureMode.getSource());
+        appendName(stringBuilder, failureMode.source);
       }
-      appendName(stringBuilder, data.getController(), false);
+      appendName(stringBuilder, data.controller, false);
 
       dataFeedBuilder.append(stringBuilder);
     }
@@ -127,14 +126,14 @@ public class ConsoleExporter implements Exporter {
 
     for (Trip trip : trips) {
       StringBuilder stringBuilder = new StringBuilder("\n");
-      appendDeviceValues(stringBuilder, trip.getDevice());
-      appendValue(stringBuilder, trip.getDevice() instanceof GoDevice
-          ? ((GoDevice) trip.getDevice()).getVehicleIdentificationNumber().replace(",", " ") : "");
+      appendDeviceValues(stringBuilder, trip.device);
+      appendValue(stringBuilder, trip.device instanceof GoDevice
+          ? ((XDevice) trip.device).vehicleIdentificationNumber.replace(",", " ") : "");
 
-      appendName(stringBuilder, trip.getDriver());
-      appendValue(stringBuilder, trip.getStart() != null ? localDateTimeToString(trip.getStart()) : "");
-      appendValue(stringBuilder, trip.getStop() != null ? localDateTimeToString(trip.getStop()) : "");
-      appendValue(stringBuilder, trip.getDistance() != null ? trip.getDistance() : "");
+      appendName(stringBuilder, trip.driver);
+      appendValue(stringBuilder, Objects.toString(trip.start, ""));
+      appendValue(stringBuilder, Objects.toString(trip.stop, ""));
+      appendValue(stringBuilder, Objects.toString(trip.distance, ""));
 
       dataFeedBuilder.append(stringBuilder);
     }
@@ -144,7 +143,7 @@ public class ConsoleExporter implements Exporter {
 
   private void appendDeviceValues(StringBuilder stringBuilder, Device device) {
     if (device != null) {
-      appendValue(stringBuilder, device.getSerialNumber());
+      appendValue(stringBuilder, device.serialNumber);
     } else {
       appendValue(stringBuilder, "");
       appendValue(stringBuilder, "");
@@ -154,7 +153,6 @@ public class ConsoleExporter implements Exporter {
   private void appendValue(StringBuilder stringBuilder, Object object) {
     appendValue(stringBuilder, object, true);
   }
-
 
   private void appendValue(StringBuilder stringBuilder, Object object, boolean addSeparator) {
     stringBuilder.append(object);
@@ -173,13 +171,9 @@ public class ConsoleExporter implements Exporter {
             : entity.getName().replace(",", " "), addSeparator);
   }
 
-  private static double round(double value, int places) {
-    if (places < 0) {
-      throw new IllegalArgumentException();
-    }
-
+  private static double round(double value) {
     BigDecimal bigDecimal = new BigDecimal(Double.toString(value));
-    bigDecimal = bigDecimal.setScale(places, RoundingMode.HALF_UP);
+    bigDecimal = bigDecimal.setScale(3, RoundingMode.HALF_UP);
     return bigDecimal.doubleValue();
   }
 }

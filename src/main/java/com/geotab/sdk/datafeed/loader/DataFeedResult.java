@@ -1,14 +1,12 @@
 package com.geotab.sdk.datafeed.loader;
 
-import com.geotab.model.entity.faultdata.FaultData;
-import com.geotab.model.entity.logrecord.LogRecord;
-import com.geotab.model.entity.statusdata.StatusData;
-import com.geotab.model.entity.trip.Trip;
+import com.geotab.plain.objectmodel.LogRecord;
+import com.geotab.plain.objectmodel.Trip;
+import com.geotab.plain.objectmodel.engine.FaultData;
+import com.geotab.plain.objectmodel.engine.StatusData;
 import java.util.List;
 
-/**
- * The result of a Feed call.
- */
+/** The result of a Feed call. */
 public class DataFeedResult {
 
   public List<LogRecord> gpsRecords;

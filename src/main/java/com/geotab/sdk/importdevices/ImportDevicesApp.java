@@ -1,23 +1,21 @@
 package com.geotab.sdk.importdevices;
 
-import static com.geotab.http.invoker.ServerInvoker.DEFAULT_TIMEOUT;
+import static com.geotab.plain.Entities.DeviceEntity;
+import static com.geotab.plain.Entities.GroupEntity;
+import static com.geotab.plain.Entities.UserEntity;
+import static com.geotab.util.Util.apply;
 import static java.util.Optional.ofNullable;
 
 import com.geotab.api.Api;
-import com.geotab.api.GeotabApi;
 import com.geotab.http.exception.DbUnavailableException;
 import com.geotab.http.exception.InvalidUserException;
-import com.geotab.http.request.param.EntityParameters;
-import com.geotab.http.request.param.SearchParameters;
 import com.geotab.model.Id;
-import com.geotab.model.entity.device.Device;
-import com.geotab.model.entity.group.CompanyGroup;
-import com.geotab.model.entity.group.Group;
-import com.geotab.model.entity.group.RootGroup;
-import com.geotab.model.entity.user.User;
-import com.geotab.model.entity.worktime.WorkTimeStandardHours;
 import com.geotab.model.login.LoginResult;
-import com.geotab.model.search.UserSearch;
+import com.geotab.plain.objectmodel.Device;
+import com.geotab.plain.objectmodel.Group;
+import com.geotab.plain.objectmodel.User;
+import com.geotab.plain.objectmodel.UserSearch;
+import com.geotab.plain.objectmodel.WorkTime;
 import com.geotab.sdk.Util.Arg;
 import com.geotab.sdk.Util.Cmd;
 import java.nio.file.Files;
@@ -43,7 +41,7 @@ public class ImportDevicesApp {
     List<CsvDeviceEntry> deviceEntries = loadDevicesFromCsv(filePath);
 
     // Create the Geotab API object used to make calls to the server
-    try (Api api = new GeotabApi(cmd.credentials, cmd.server, DEFAULT_TIMEOUT)) {
+    try (Api api = cmd.newApi()) {
 
       // Authenticate user
       authenticate(api);
@@ -66,18 +64,17 @@ public class ImportDevicesApp {
     log.debug("Loading CSV {}…", filePath);
 
     try (Stream<String> rows = Files.lines(Paths.get(filePath))) {
-      return rows
-          .filter(row -> row != null && !row.startsWith("#"))
-          .map(row -> {
-            String[] columns = row.split(",");
-            CsvDeviceEntry out = new CsvDeviceEntry();
-            out.description = columns[0];
-            out.serialNumber = columns[1];
-            out.nodeName = columns.length > 2 ? columns[2] : "";
-            out.vin = columns.length > 3 ? columns[3] : "";
-            return out;
-          })
-          .collect(Collectors.toList());
+      return rows.filter(row -> row != null && !row.startsWith("#"))
+        .map(row -> {
+          String[] columns = row.split(",");
+          CsvDeviceEntry out = new CsvDeviceEntry();
+          out.description = columns[0];
+          out.serialNumber = columns[1];
+          out.nodeName = columns.length > 2 ? columns[2] : "";
+          out.vin = columns.length > 3 ? columns[3] : "";
+          return out;
+        })
+        .collect(Collectors.toList());
     } catch (Exception exception) {
       log.error("Failed to load csv file {} : ", filePath, exception);
       System.exit(1);
@@ -114,8 +111,7 @@ public class ImportDevicesApp {
 
     User apiUser = null;
     try {
-      Optional<List<User>> users = api.callGet(SearchParameters.searchParamsBuilder()
-          .search(UserSearch.builder().name(username).build()).typeName("User").resultsLimit(1).build(), User.class);
+      var users = api.callGet(UserEntity, apply(new UserSearch(), s -> s.name = username), 1);
       if (!users.isPresent() || users.get().isEmpty()) {
         log.error("User {} not found", username);
         System.exit(1);
@@ -129,8 +125,7 @@ public class ImportDevicesApp {
     return apiUser;
   }
 
-  private static void importDevices(Api api, User apiUser,
-      List<CsvDeviceEntry> deviceEntries) {
+  private static void importDevices(Api api, User apiUser, List<CsvDeviceEntry> deviceEntries) {
     log.debug("Start importing devices…");
 
     try {
@@ -138,8 +133,9 @@ public class ImportDevicesApp {
       List<Group> existingGroups = getExistingGroups(api);
 
       // We only want to be able to assign Org Group if the API user has this in their scope.
-      boolean hasOrgGroupScope = apiUser.getCompanyGroups().stream()
-          .anyMatch(group -> group instanceof CompanyGroup || group instanceof RootGroup);
+      boolean hasOrgGroupScope =
+        apiUser.companyGroups != null
+          && apiUser.companyGroups.stream().anyMatch(Group::isSystemEntity);
 
       // Add devices
       for (CsvDeviceEntry deviceEntry : deviceEntries) {
@@ -152,24 +148,22 @@ public class ImportDevicesApp {
 
         // If there are no nodes for the device specified in the .csv we will try to assign to Org
         if (hasOrgGroupScope && ofNullable(deviceEntry.nodeName).orElse("").isEmpty()) {
-          deviceGroups.add(new CompanyGroup());
+          deviceGroups.add(Group.fromString("GroupCompanyId"));
         }
 
         // Iterate through the group names and try to assign each group
         // to the device looking it up from the allNodes collection.
         for (String groupName : groupNames) {
           // Organization group.
-          if (hasOrgGroupScope
-              && "organization".equals(groupName.trim().toLowerCase())
-              || "entire organization".equals(groupName.trim().toLowerCase())) {
-            deviceGroups.add(new CompanyGroup());
+          if (hasOrgGroupScope && "organization".equals(groupName.trim().toLowerCase())
+            || "entire organization".equals(groupName.trim().toLowerCase())) {
+            deviceGroups.add(Group.fromString("GroupCompanyId"));
           } else {
             // Get the group from allNodes
             Optional<Group> existingGroup = findGroup(existingGroups, groupName);
 
             if (!existingGroup.isPresent()) {
-              log.warn("Device Rejected - {} . Group {} does not exist.",
-                  deviceEntry.description, groupName);
+              log.warn("Device Rejected - {} . Group {} does not exist.", deviceEntry.description, groupName);
               deviceRejected = true;
               break;
             }
@@ -185,10 +179,9 @@ public class ImportDevicesApp {
         }
 
         // Check for an existing device.
-        boolean deviceExists = existingDevices
-            .stream()
-            .anyMatch(device -> device.getSerialNumber()
-                .equals(deviceEntry.serialNumber.replace("-", "")));
+        String cleanSerial = deviceEntry.serialNumber.replace("-", "");
+        boolean deviceExists = existingDevices.stream()
+          .anyMatch(device -> device.serialNumber != null && device.serialNumber.equals(cleanSerial));
         if (deviceExists) {
           log.warn("Device already exists - {} . Ignoring it.", deviceEntry.description);
           continue;
@@ -196,20 +189,21 @@ public class ImportDevicesApp {
 
         try {
           // Create the device object.
-          Device newDevice = Device.fromSerialNumber(deviceEntry.serialNumber);
-          newDevice.setSerialNumber(deviceEntry.serialNumber.replace("-", ""));
-          newDevice.populateDefaults();
-          newDevice.setName(deviceEntry.description);
-          newDevice.setGroups(deviceGroups);
-          newDevice.setWorkTime(new WorkTimeStandardHours());
+          Device newDevice =
+            apply(
+              new Device(),
+              d -> {
+                d.setName(deviceEntry.description);
+                d.serialNumber = cleanSerial;
+                d.groups = deviceGroups;
+                d.workTime = WorkTime.fromString("WorkTimeStandardHoursId");
+              });
 
           // Add the device
-          Optional<Id> response = api.callAdd(EntityParameters.entityParamsBuilder()
-              .typeName("Device").entity(newDevice).build());
+          Optional<Id> response = api.callAdd(DeviceEntity, newDevice);
 
           if (response.isPresent()) {
-            log.info("Device {} added with id {} .",
-                deviceEntry.description, response.get().getId());
+            log.info("Device {} added with id {} .", deviceEntry.description, response.get().getId());
           } else {
             log.warn("Device {} not added; no id returned", deviceEntry.description);
           }
@@ -217,7 +211,6 @@ public class ImportDevicesApp {
           // Catch and display any error that occur when adding the device
           log.error("Failed to import device {}", deviceEntry.description, exception);
         }
-
       }
 
       log.info("Devices imported.");
@@ -230,8 +223,7 @@ public class ImportDevicesApp {
   private static List<Device> getExistingDevices(Api api) {
     log.debug("Get existing devices…");
     try {
-      return api.callGet(SearchParameters.searchParamsBuilder()
-          .typeName("Device").build(), Device.class).orElse(new ArrayList<>());
+      return api.callGet(DeviceEntity, null, null).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing devices ", exception);
       System.exit(1);
@@ -243,8 +235,7 @@ public class ImportDevicesApp {
   private static List<Group> getExistingGroups(Api api) {
     log.debug("Get existing groups…");
     try {
-      return api.callGet(SearchParameters.searchParamsBuilder()
-          .typeName("Group").build(), Group.class).orElse(new ArrayList<>());
+      return api.callGet(GroupEntity, null, null).orElse(new ArrayList<>());
     } catch (Exception exception) {
       log.error("Failed to get existing groups ", exception);
       System.exit(1);

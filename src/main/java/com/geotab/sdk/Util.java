@@ -43,7 +43,9 @@ public interface Util {
             passwordFromConsole = true;
           }
         }
-        if (isNullOrEmpty(passwordArg.value)) die("Missing parameter error: password (or set sessionId instead)");
+        if (isNullOrEmpty(passwordArg.value)) {
+          die("Missing parameter error: password (or set sessionId instead)");
+        }
       }
 
       // Show configured parameters
@@ -56,7 +58,8 @@ public interface Util {
       }
       // Prepare standard API parameters
       server = this.args.get("server").value;
-      credentials = Credentials.builder()
+      credentials =
+        Credentials.builder()
           .database(this.args.get("database").value)
           .password(passwordArg.value)
           .userName(this.args.get("username").value)
