@@ -7,7 +7,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 
 /** Base {@link Entity} cache. */
@@ -23,13 +22,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
     this.api = api;
     this.noEntity = noEntity;
     this.cache = CacheBuilder.newBuilder()
-      .maximumSize(600)
-      // .expireAfterWrite(12, TimeUnit.HOURS)
-      .build(new CacheLoader<>() {
-        @Override public T load(@Nullable String key) {
-          return fetchEntity(key).orElseGet(() -> createFakeCacheable(key));
-        }
-      });
+      .build(CacheLoader.from(k -> fetchEntity(k).orElseGet(() -> createFakeCacheable(k))));
   }
 
   /**
@@ -135,7 +128,7 @@ public abstract class GeotabEntityCache<T extends Entity> {
         }
       }
     } catch (Exception exception) {
-      getLog().error("Failed to reload entities - ", exception);
+      getLog().error("Failed to reload entities", exception);
       reloaded = false;
     }
 

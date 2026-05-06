@@ -109,3 +109,6 @@ logs/
 *.bak
 *.swp
 *~.nib
+
+# Local session
+*.local.*

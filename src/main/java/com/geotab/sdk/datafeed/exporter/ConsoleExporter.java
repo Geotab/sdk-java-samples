@@ -166,9 +166,8 @@ public class ConsoleExporter implements Exporter {
   }
 
   private void appendName(StringBuilder stringBuilder, NameEntity entity, boolean addSeparator) {
-    appendValue(stringBuilder,
-        entity.isSystemEntity() ? entity.getClass().getSimpleName().replace(",", " ")
-            : entity.getName().replace(",", " "), addSeparator);
+    String name = entity.getName() != null ? entity.getName() : Objects.toString(entity.getId(), "");
+    appendValue(stringBuilder, name.replace(",", " "), addSeparator);
   }
 
   private static double round(double value) {
