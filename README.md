@@ -16,7 +16,33 @@ mvn compile
 mvn exec:java -Dapp=<name>
 ```
 
-Credentials are prompted interactively on first run and cached in `session.local.properties` (gitignored). The last chosen app is remembered in `app.local.properties`.
+Credentials are resolved in priority order:
+
+1. **System properties** — `-Dserver=my.geotab.com -Ddatabase=G560 -Dusername=user@mail.com -Dpassword=secret`
+2. **Environment variables** — `GEOTAB_SERVER`, `GEOTAB_DATABASE`, `GEOTAB_USER`, `GEOTAB_PASSWORD`
+3. **Interactive prompts** — entered at the terminal when a required value is missing
+
+The password is never echoed or stored. No credential files are written to disk.
+
+### Example — environment variables (recommended for CI/CD)
+
+```shell
+export GEOTAB_SERVER=my.geotab.com
+export GEOTAB_DATABASE=G560
+export GEOTAB_USER=user@mail.com
+export GEOTAB_PASSWORD=secret
+mvn exec:java -Dapp=getCount
+```
+
+### Example — system properties
+
+```shell
+mvn exec:java -Dapp=getCount \
+  -Dserver=my.geotab.com \
+  -Ddatabase=G560 \
+  -Dusername=user@mail.com \
+  -Dpassword=secret
+```
 
 ## Examples
 
