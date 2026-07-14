@@ -15,7 +15,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>22</maven.compiler.release>
-    <geotab.sdk.version>10.0.5</geotab.sdk.version>
+    <geotab.sdk.version>10.0.6</geotab.sdk.version>
   </properties>
 
   <repositories>
